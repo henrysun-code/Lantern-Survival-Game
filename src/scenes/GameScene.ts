@@ -33,6 +33,12 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     const b = runtimeConfig.config.balance;
+    // scene.restart() 會重用同一個 Scene instance，這些執行期狀態必須明確歸零。
+    this.elapsed = 0;
+    this.kills = 0;
+    this.gameOver = false;
+    this.debugVisible = false;
+    this.physics.resume();
     this.physics.world.setBounds(0, 0, this.scale.width, this.scale.height);
     this.createBackdrop();
     this.light = this.add.graphics().setDepth(1);
