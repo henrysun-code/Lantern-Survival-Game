@@ -26,6 +26,7 @@ export class GameScene extends Phaser.Scene {
   private kills = 0;
   private gameOver = false;
   private debugVisible = false;
+  private restartKey!: Phaser.Input.Keyboard.Key;
   private unsubscribeConfig?: () => void;
 
   constructor() { super('GameScene'); }
@@ -43,6 +44,7 @@ export class GameScene extends Phaser.Scene {
     this.spawnSystem = new SpawnSystem(this, this.enemies, this.pickups);
     this.hud = new GameHUD(this);
     this.panel = new DebugPanel(() => this.scene.restart());
+    this.restartKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     this.input.keyboard!.on('keydown-F3', () => { this.debugVisible = !this.debugVisible; });
     this.physics.add.overlap(this.player, this.enemies, (_, enemy) => this.onEnemyContact(enemy as Enemy));
     this.physics.add.overlap(this.player, this.projectiles, (_, projectile) => this.onProjectileHit(projectile as Projectile));
@@ -58,7 +60,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time: number, deltaMs: number): void {
-    if (this.gameOver) return;
+    if (this.gameOver) {
+      if (Phaser.Input.Keyboard.JustDown(this.restartKey)) this.scene.restart();
+      return;
+    }
     const dt = Math.min(deltaMs / 1000, 0.05);
     this.elapsed += dt;
     this.player.updateMovement();
@@ -179,8 +184,11 @@ export class GameScene extends Phaser.Scene {
     this.player.setVelocity(0).setTint(0x777777);
     this.physics.pause();
     const title = this.add.text(this.scale.width / 2, this.scale.height / 2 - 20, '燈火熄滅', { fontSize: '54px', color: '#ffe5a0', fontStyle: 'bold', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5).setDepth(200);
-    const hint = this.add.text(this.scale.width / 2, this.scale.height / 2 + 52, `存活 ${this.elapsed.toFixed(1)} 秒 · 擊殺 ${this.kills}\n按 R 重新開始`, { align: 'center', fontSize: '21px', color: '#d7dbea' }).setOrigin(0.5).setDepth(200);
-    this.input.keyboard!.once('keydown-R', () => this.scene.restart());
+    const hint = this.add.text(this.scale.width / 2, this.scale.height / 2 + 52, `存活 ${this.elapsed.toFixed(1)} 秒 · 擊殺 ${this.kills}\n按 R 或點擊此處重新開始`, { align: 'center', fontSize: '21px', color: '#d7dbea', backgroundColor: '#101520cc', padding: { x: 18, y: 12 } })
+      .setOrigin(0.5)
+      .setDepth(200)
+      .setInteractive({ useHandCursor: true })
+      .once('pointerdown', () => this.scene.restart());
     void title; void hint;
   }
 }
