@@ -66,12 +66,14 @@ public/assets/player/player-sheet.png
 
 `idleDown`、`walkDown`、`walkUp`、`walkSide`、`hurt`、`death` 這些名稱不要改。JSON 不可加入註解，也不要在最後一項加逗號。圖片找不到時會自動使用 Placeholder。
 
-玩家四方向建議使用 4 列、每列 6 格的 spritesheet：
+玩家建議使用 5 列、每列 6 格的 spritesheet（共 30 格）：
 
 ```text
 第 1 列：下 (0-5)
 第 2 列：上 (6-11)
 第 3 列：側面 (12-17，左右共用並翻轉)
+第 4 列：受傷 (18-23)
+第 5 列：死亡 (24-29)
 ```
 
 ## C. 新增怪物
