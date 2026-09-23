@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { ASSETS } from '../config/assets';
+import { ANIMATIONS } from '../config/animations';
+import { runtimeConfig } from '../config/runtime';
 import { createConfiguredAnimations, fallbackKey } from '../utils/visuals';
 
 export class BootScene extends Phaser.Scene {
@@ -13,12 +15,33 @@ export class BootScene extends Phaser.Scene {
     });
   }
 
-  create(): void {
+  async create(): Promise<void> {
+    await this.loadContentData();
     Object.entries(ASSETS).forEach(([key, asset]) => {
       if (!this.textures.exists(asset.texture)) this.createPlaceholder(fallbackKey(key), asset.placeholder);
     });
     createConfiguredAnimations(this);
     this.scene.start('GameScene');
+  }
+
+  private async loadContentData(): Promise<void> {
+    // 使用目前頁面的 URL 組合路徑，因此本機與 GitHub Pages 子路徑都能工作。
+    const base = new URL('.', window.location.href);
+    const readJson = async (file: string): Promise<any | null> => {
+      try {
+        const response = await fetch(new URL(`game-data/${file}`, base));
+        if (!response.ok) return null;
+        return await response.json();
+      } catch {
+        return null;
+      }
+    };
+    const [balance, enemies, items, assets, animations] = await Promise.all([
+      readJson('balance.json'), readJson('enemies.json'), readJson('items.json'), readJson('assets.json'), readJson('animations.json'),
+    ]);
+    runtimeConfig.loadExternal({ balance, enemies, items });
+    if (assets) Object.assign(ASSETS, assets);
+    if (animations) Object.assign(ANIMATIONS, animations);
   }
 
   private createPlaceholder(key: string, spec: { shape: string; color: number; width: number; height: number }): void {

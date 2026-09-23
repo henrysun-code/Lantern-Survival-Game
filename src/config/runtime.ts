@@ -34,6 +34,23 @@ export class RuntimeConfigStore {
     return () => this.listeners.delete(listener);
   }
 
+  /** 載入企劃資料檔；不完整或格式錯誤時保留內建預設值。 */
+  loadExternal(partial: Partial<RuntimeConfig>): void {
+    const merge = (base: any, incoming: any): any => {
+      if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) return incoming ?? base;
+      const result = { ...base };
+      Object.entries(incoming).forEach(([key, value]) => {
+        if (value === null || value === undefined) return;
+        result[key] = value && typeof value === 'object' && !Array.isArray(value)
+          ? merge(base?.[key], value)
+          : value;
+      });
+      return result;
+    };
+    this.data = merge(this.data, partial);
+    this.listeners.forEach((listener) => listener('*', 0));
+  }
+
   reset(): void {
     this.data = clone(defaults);
     this.listeners.forEach((listener) => listener('*', 0));

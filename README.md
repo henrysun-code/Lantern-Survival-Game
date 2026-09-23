@@ -163,3 +163,29 @@ largeLampOil: {
 - 用實際部署子路徑測試素材網址；目前 `/assets/...` 適合部署於網域根目錄。若公司網站使用子路徑，可在 Vite 設定 `base`，並統一調整資產 URL。
 - 在目標桌機瀏覽器測試 WebGL/Canvas、音效自動播放政策與不同視窗比例。
 - 正式環境可在產品層隱藏 Debug Panel 的入口，或使用環境變數控制是否啟用。
+
+## 企劃／非工程師資料維護方式
+
+正式遊戲執行時會優先讀取 `public/game-data/` 的 JSON；若檔案不存在或格式有誤，才會退回 `src/config/` 內建預設值。日常調整建議只修改這個資料夾：
+
+```text
+public/game-data/
+  balance.json      玩家、提燈、衰退、生成與生命流失
+  enemies.json      敵人種類與戰鬥數值
+  items.json        道具名稱、效果與補充值
+  assets.json       圖片路徑、縮放、尺寸與 Placeholder
+  animations.json   spritesheet 動畫 frame 與速度
+```
+
+圖片則放在 `public/assets/player/`、`public/assets/enemies/`、`public/assets/items/` 等資料夾，然後在 `assets.json` 修改 `path`。例如：
+
+```json
+{
+  "texture": "player",
+  "path": "assets/player/player-new.png",
+  "scale": 1,
+  "origin": { "x": 0.5, "y": 0.65 }
+}
+```
+
+這些 JSON 不可加入註解；請使用清楚的欄位名稱，並保留一份可工作的預設檔。若要在 GitHub 網頁維護，只需編輯 JSON 或上傳圖片、Commit changes，GitHub Actions 會自動重新建置。業界更大型的專案通常會在這些資料檔上再加 Schema 驗證、企劃編輯器或 CMS，避免非工程師輸入錯誤格式；目前這個結構已保留日後接編輯器的界線。

@@ -1,0 +1,6 @@
+{
+  "lightBoost": { "id": "lightBoost", "name": "燈油", "texture": "pickupLight", "effectType": "lightRadius", "value": 42, "sharedHealthDrainReduction": 0.5, "effectDuration": 5 },
+  "speedBoost": { "id": "speedBoost", "name": "疾風", "texture": "pickupSpeed", "effectType": "moveSpeed", "value": 48, "sharedHealthDrainReduction": 0.5, "effectDuration": 5 },
+  "damageBoost": { "id": "damageBoost", "name": "烈光", "texture": "pickupDamage", "effectType": "lightDamage", "value": 10, "sharedHealthDrainReduction": 0.5, "effectDuration": 5 },
+  "defenseBoost": { "id": "defenseBoost", "name": "守護", "texture": "pickupDefense", "effectType": "damageReduction", "value": 0.12, "sharedHealthDrainReduction": 0.5, "effectDuration": 5 }
+}

@@ -1,0 +1,12 @@
+{
+  "melee": {
+    "id": "melee", "name": "追獵者", "hp": 70, "speed": 105, "contactDamage": 13,
+    "attackInterval": 0.8, "projectileSpeed": 0, "projectileDamage": 0, "range": 0,
+    "preferredDistance": 0, "texture": "enemyMelee", "animations": "enemyMelee", "behavior": "melee", "spawnWeight": 0.68
+  },
+  "ranged": {
+    "id": "ranged", "name": "幽光射手", "hp": 48, "speed": 78, "contactDamage": 7,
+    "attackInterval": 1.7, "projectileSpeed": 245, "projectileDamage": 11, "range": 430,
+    "preferredDistance": 280, "texture": "enemyRanged", "animations": "enemyRanged", "behavior": "ranged", "spawnWeight": 0.32
+  }
+}

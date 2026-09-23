@@ -1,0 +1,16 @@
+{
+  "world": { "width": 1280, "height": 720 },
+  "player": {
+    "maxHp": 100,
+    "collisionRadius": 18,
+    "invulnerabilitySeconds": 0.45,
+    "moveSpeed": { "start": 260, "minimum": 90, "decayPerSecond": 1.4 }
+  },
+  "lantern": { "radius": { "start": 210, "minimum": 75, "decayPerSecond": 1.05 } },
+  "lightDamage": { "dps": { "start": 28, "minimum": 5, "decayPerSecond": 0.18 } },
+  "damageReduction": { "ratio": { "start": 0.55, "minimum": 0.08, "decayPerSecond": 0.004 } },
+  "healthDrain": { "startPerSecond": 0.8, "increasePerSecond": 0.035, "curve": "linear", "quadraticFactor": 0.0007 },
+  "pickups": { "spawnInterval": 8, "lifetime": 14, "pickupRange": 34, "sharedHealthDrainReduction": 0.5, "sharedEffectDuration": 5 },
+  "enemies": { "spawnInterval": 2.2, "minimumSpawnInterval": 0.55, "spawnIntervalDecayPerSecond": 0.012, "countStart": 1, "countIncreaseEverySeconds": 35, "countMaximum": 4 },
+  "projectile": { "lifetime": 5, "radius": 6 }
+}

@@ -1,0 +1,8 @@
+{
+  "player": {
+    "idle": { "key": "player_idle", "texture": "player", "startFrame": 0, "endFrame": 0, "frameRate": 6, "repeat": -1 },
+    "walk": { "key": "player_walk", "texture": "player", "startFrame": 0, "endFrame": 5, "frameRate": 10, "repeat": -1 },
+    "hurt": { "key": "player_hurt", "texture": "player", "startFrame": 6, "endFrame": 8, "frameRate": 12, "repeat": 0 },
+    "death": { "key": "player_death", "texture": "player", "startFrame": 9, "endFrame": 13, "frameRate": 9, "repeat": 0 }
+  }
+}
