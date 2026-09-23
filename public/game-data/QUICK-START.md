@@ -1,5 +1,19 @@
 # 換圖與動畫：最短流程
 
+## 0. 用 Excel 編輯（推薦）
+
+開啟同資料夾的 `Lantern-Survival-Game-Config.xlsx`，修改黃色欄位即可。遊戲會優先讀取這份 Excel，工作表用途如下：
+
+```text
+Balance     遊戲平衡數值
+Enemies     怪物
+Items       道具
+Animations  動畫幀與速度
+Assets      圖片路徑、Spritesheet 大小與 Placeholder
+```
+
+修改後請直接儲存。圖片仍需放到 `public/assets/`，Assets 的 `path` 填 `assets/...`。本地執行 `pnpm dev` 後按 `Ctrl+F5` 就會看到變更；確認無誤再提交 GitHub。若 Excel 檔案損壞或無法讀取，遊戲會退回使用下方的 JSON 設定。
+
 ## A. 單張圖片（沒有逐格動畫）
 
 把圖放到：

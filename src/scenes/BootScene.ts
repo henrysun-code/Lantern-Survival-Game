@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { ASSETS } from '../config/assets';
 import { ANIMATIONS } from '../config/animations';
 import { runtimeConfig } from '../config/runtime';
+import { parseGameConfigXlsx } from '../config/excelConfig';
 import { createConfiguredAnimations, fallbackKey } from '../utils/visuals';
 
 export class BootScene extends Phaser.Scene {
@@ -17,6 +18,7 @@ export class BootScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     await this.loadContentData();
+    await this.reloadConfiguredAssets();
     Object.entries(ASSETS).forEach(([key, asset]) => {
       if (!this.textures.exists(asset.texture)) this.createPlaceholder(fallbackKey(key), asset.placeholder);
     });
@@ -36,12 +38,35 @@ export class BootScene extends Phaser.Scene {
         return null;
       }
     };
+    try {
+      const response = await fetch(new URL('game-data/Lantern-Survival-Game-Config.xlsx', base));
+      if (response.ok) {
+        const config = parseGameConfigXlsx(await response.arrayBuffer());
+        runtimeConfig.loadExternal(config);
+        if (Object.keys(config.assets).length) Object.assign(ASSETS, config.assets);
+        if (Object.keys(config.animations).length) Object.assign(ANIMATIONS, config.animations);
+        return;
+      }
+    } catch {
+      // Fall back to the individual JSON files below.
+    }
     const [balance, enemies, items, assets, animations] = await Promise.all([
       readJson('balance.json'), readJson('enemies.json'), readJson('items.json'), readJson('assets.json'), readJson('animations.json'),
     ]);
     runtimeConfig.loadExternal({ balance, enemies, items });
     if (assets) Object.assign(ASSETS, assets);
     if (animations) Object.assign(ANIMATIONS, animations);
+  }
+
+  private async reloadConfiguredAssets(): Promise<void> {
+    const pending = Object.values(ASSETS).filter((asset) => asset.path);
+    if (!pending.length) return;
+    pending.forEach((asset) => {
+      if (this.textures.exists(asset.texture)) this.textures.remove(asset.texture);
+      if (asset.spritesheet) this.load.spritesheet(asset.texture, asset.path, asset.spritesheet);
+      else this.load.image(asset.texture, asset.path);
+    });
+    await new Promise<void>((resolve) => { this.load.once(Phaser.Loader.Events.COMPLETE, () => resolve()); this.load.start(); });
   }
 
   private createPlaceholder(key: string, spec: { shape: string; color: number; width: number; height: number }): void {
