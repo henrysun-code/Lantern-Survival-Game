@@ -40,7 +40,7 @@ readme.getRange('A3:B11').values = [
   ['本地測試', 'PowerShell 執行 pnpm dev，瀏覽器開啟 http://localhost:5173/，按 Ctrl+F5。'],
   ['部署', '確認本地無誤後再 git add、git commit、git push。'],
   ['新增道具', 'Items 工作表新增一列，id 必須唯一，texture 必須對應 Assets 的 id。'],
-  ['新增怪物', 'Enemies 工作表新增一列；behavior 先使用 melee 或 ranged。'],
+  ['新增怪物', 'Enemies 工作表新增一列；behavior 可使用 melee、ranged 或 dashRetreat。'],
   ['替換圖片', '圖片放到 public/assets/，Assets 的 path 填 assets/... 的相對路徑。'],
   ['動畫', 'Animations 的 startFrame/endFrame 是圖片序列編號，從 0 開始。'],
   ['注意', '所有數值請填數字；比例請填 0 到 1，例如 0.55。'],
@@ -59,8 +59,8 @@ const flatten = (value, prefix = '') => Object.entries(value).forEach(([key, chi
 flatten(balance);
 makeTable('Balance', ['path', 'value', 'unit', 'description'], balanceRows);
 
-const enemyRows = Object.values(enemies).map((e) => [e.id, e.name, e.hp, e.speed, e.contactDamage, e.attackInterval, e.projectileSpeed, e.projectileDamage, e.range, e.preferredDistance, e.texture, e.animations, e.behavior, e.spawnWeight]);
-makeTable('Enemies', ['id', 'name', 'hp', 'speed', 'contactDamage', 'attackInterval', 'projectileSpeed', 'projectileDamage', 'range', 'preferredDistance', 'texture', 'animations', 'behavior', 'spawnWeight'], enemyRows);
+const enemyRows = Object.values(enemies).map((e) => [e.id, e.name, e.hp, e.speed, e.contactDamage, e.attackInterval, e.projectileSpeed, e.projectileDamage, e.range, e.preferredDistance, e.texture, e.animations, e.behavior, e.spawnWeight, e.triggerRange ?? '', e.dashSpeed ?? '', e.dashEndDistance ?? '', e.retreatSpeed ?? '', e.retreatDuration ?? '', e.statusEffect ?? '', e.statusDamagePerSecond ?? '', e.statusDuration ?? '']);
+makeTable('Enemies', ['id', 'name', 'hp', 'speed', 'contactDamage', 'attackInterval', 'projectileSpeed', 'projectileDamage', 'range', 'preferredDistance', 'texture', 'animations', 'behavior', 'spawnWeight', 'triggerRange', 'dashSpeed', 'dashEndDistance', 'retreatSpeed', 'retreatDuration', 'statusEffect', 'statusDamagePerSecond', 'statusDuration'], enemyRows);
 
 const itemRows = Object.values(items).map((e) => [e.id, e.name, e.texture, e.effectType, e.value, e.sharedHealthDrainReduction, e.effectDuration]);
 makeTable('Items', ['id', 'name', 'texture', 'effectType', 'value', 'sharedHealthDrainReduction', 'effectDuration'], itemRows);

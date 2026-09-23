@@ -5,11 +5,18 @@ export const ENEMIES: Record<string, EnemyDefinition> = {
   melee: {
     id: 'melee', name: '追獵者', hp: 70, speed: 105, contactDamage: 13,
     attackInterval: 0.8, projectileSpeed: 0, projectileDamage: 0, range: 0,
-    preferredDistance: 0, texture: 'enemyMelee', animations: 'enemyMelee', behavior: 'melee', spawnWeight: 0.68,
+    preferredDistance: 0, texture: 'enemyMelee', animations: 'enemyMelee', behavior: 'melee', spawnWeight: 0.55,
   },
   ranged: {
     id: 'ranged', name: '幽光射手', hp: 48, speed: 78, contactDamage: 7,
     attackInterval: 1.7, projectileSpeed: 245, projectileDamage: 11, range: 430,
-    preferredDistance: 280, texture: 'enemyRanged', animations: 'enemyRanged', behavior: 'ranged', spawnWeight: 0.32,
+    preferredDistance: 280, texture: 'enemyRanged', animations: 'enemyRanged', behavior: 'ranged', spawnWeight: 0.25,
+  },
+  mosquito: {
+    id: 'mosquito', name: '蚊子', hp: 60, speed: 70, contactDamage: 3,
+    attackInterval: 1.2, projectileSpeed: 0, projectileDamage: 0, range: 0,
+    preferredDistance: 0, texture: 'enemyMosquito', animations: 'enemyMosquito', behavior: 'dashRetreat', spawnWeight: 0.2,
+    triggerRange: 190, dashSpeed: 330, dashEndDistance: 360, retreatSpeed: 220, retreatDuration: 1.4,
+    statusEffect: 'mosquitoBite', statusDamagePerSecond: 1.5, statusDuration: 4,
   },
 };

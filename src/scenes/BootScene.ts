@@ -43,7 +43,9 @@ export class BootScene extends Phaser.Scene {
       if (response.ok) {
         const config = parseGameConfigXlsx(await response.arrayBuffer());
         runtimeConfig.loadExternal(config);
-        if (Object.keys(config.assets).length) Object.assign(ASSETS, config.assets);
+        Object.entries(config.assets).forEach(([key, override]) => {
+          ASSETS[key] = { ...ASSETS[key], ...override };
+        });
         if (Object.keys(config.animations).length) Object.assign(ANIMATIONS, config.animations);
         return;
       }

@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Vite 會顯示本機網址。桌機操作使用 `WASD` 或方向鍵。
+Vite 會顯示本機網址。桌機使用 `WASD` 或方向鍵移動；手機使用畫面左下角的搖桿移動，右下角「調整」可開啟設定面板。遊戲會依螢幕尺寸調整畫面，直式與橫式皆可遊玩；死亡後點擊畫面中央的提示即可重新開始。
 
 正式建置：
 
@@ -156,6 +156,8 @@ largeLampOil: {
 現有 `effectType`：`lightRadius`、`moveSpeed`、`lightDamage`、`damageReduction`。同類型的新道具不需要修改 Pickup。新效果種類才需要擴充 `ItemEffect` 與 `Player.applyPickup()`。
 
 所有道具的個別補值不會停止自然衰退，只會把目前數值向上補；共通效果則在指定秒數內降低持續生命流失。
+
+玩家會依 `player.color.darkenPerSecond` 持續變黑，最低亮度由 `player.color.minimumBrightness` 決定。道具加上 `restoresColor: true` 後，拾取時會在該道具的 `effectDuration` 秒內依 `player.color.restorePerSecond` 逐漸恢復原色；再次拾取會從當下重新計時，到期後從目前顏色繼續變黑。預設的燈油和烈光會回色，疾風與守護不會。Excel 設定檔的 `Items.restoresColor` 欄以 `1` 表示開啟、`0` 表示關閉。
 
 ## 发布前建议
 

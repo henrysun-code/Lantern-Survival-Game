@@ -23,7 +23,7 @@ export type AnimationDefinition = {
   yoyo?: boolean;
 };
 
-export type EnemyBehavior = 'melee' | 'ranged';
+export type EnemyBehavior = 'melee' | 'ranged' | 'dashRetreat';
 export type EnemyDefinition = {
   id: string;
   name: string;
@@ -39,6 +39,14 @@ export type EnemyDefinition = {
   animations: string;
   behavior: EnemyBehavior;
   spawnWeight: number;
+  triggerRange?: number;
+  dashSpeed?: number;
+  dashEndDistance?: number;
+  retreatSpeed?: number;
+  retreatDuration?: number;
+  statusEffect?: string;
+  statusDamagePerSecond?: number;
+  statusDuration?: number;
 };
 
 export type ItemEffect = 'lightRadius' | 'moveSpeed' | 'lightDamage' | 'damageReduction';
@@ -50,4 +58,5 @@ export type ItemDefinition = {
   value: number;
   sharedHealthDrainReduction: number;
   effectDuration: number;
+  restoresColor?: boolean;
 };

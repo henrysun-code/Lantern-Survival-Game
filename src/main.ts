@@ -6,16 +6,15 @@ import './style.css';
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game-root',
-  width: 1280,
-  height: 720,
+  width: window.innerWidth,
+  height: window.innerHeight,
   backgroundColor: '#090b10',
   physics: {
     default: 'arcade',
     arcade: { debug: false },
   },
   scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
+    mode: Phaser.Scale.RESIZE,
   },
   scene: [BootScene, GameScene],
 });

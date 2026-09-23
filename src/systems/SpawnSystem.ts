@@ -12,8 +12,13 @@ export class SpawnSystem {
   update(nowSeconds: number): void {
     const balance = runtimeConfig.config.balance;
     if (nowSeconds >= this.nextEnemyAt) {
-      const interval = Math.max(balance.enemies.minimumSpawnInterval, balance.enemies.spawnInterval - nowSeconds * balance.enemies.spawnIntervalDecayPerSecond);
-      const count = Math.min(balance.enemies.countMaximum, balance.enemies.countStart + Math.floor(nowSeconds / balance.enemies.countIncreaseEverySeconds));
+      const baseInterval = balance.enemies.spawnInterval - nowSeconds * balance.enemies.spawnIntervalDecayPerSecond;
+      const age = Math.floor(nowSeconds / balance.age.secondsPerYear);
+      const earlyAgeMultiplier = age < balance.age.slowStart
+        ? (balance.enemies.earlyAgeSpawnIntervalMultiplier ?? 1)
+        : 1;
+      const interval = Math.max(balance.enemies.minimumSpawnInterval, baseInterval * earlyAgeMultiplier);
+      const count = Math.min(balance.enemies.countMaximum, balance.enemies.countStart + Math.floor(nowSeconds / balance.enemies.countIncreaseEverySeconds) * (balance.enemies.countIncreaseAmount ?? 1));
       for (let index = 0; index < count; index += 1) this.spawnEnemy();
       this.nextEnemyAt = nowSeconds + interval;
     }

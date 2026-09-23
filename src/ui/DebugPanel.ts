@@ -5,6 +5,9 @@ type Control = { label: string; path: string; min: number; max: number; step: nu
 const CONTROLS: Control[] = [
   { section: '玩家', label: '目前移速', path: 'balance.player.moveSpeed.start', min: 20, max: 600, step: 1 },
   { section: '玩家', label: '移速衰退', path: 'balance.player.moveSpeed.decayPerSecond', min: 0, max: 10, step: 0.01 },
+  { section: '玩家', label: '變黑速度', path: 'balance.player.color.darkenPerSecond', min: 0, max: 0.2, step: 0.001 },
+  { section: '玩家', label: '回色速度', path: 'balance.player.color.restorePerSecond', min: 0, max: 1, step: 0.01 },
+  { section: '玩家', label: '最暗亮度', path: 'balance.player.color.minimumBrightness', min: 0, max: 1, step: 0.01 },
   { section: '提燈', label: '目前光圈', path: 'balance.lantern.radius.start', min: 20, max: 500, step: 1 },
   { section: '提燈', label: '光圈衰退', path: 'balance.lantern.radius.decayPerSecond', min: 0, max: 10, step: 0.01 },
   { section: '提燈', label: '目前光傷', path: 'balance.lightDamage.dps.start', min: 0, max: 150, step: 0.1 },
@@ -67,8 +70,12 @@ export class DebugPanel {
     this.root.remove();
   }
 
+  toggle(): void {
+    this.root.hidden = !this.root.hidden;
+  }
+
   private keyHandler = (event: KeyboardEvent): void => {
-    if (event.key === 'F2') { event.preventDefault(); this.root.hidden = !this.root.hidden; }
+    if (event.key === 'F2') { event.preventDefault(); this.toggle(); }
   };
 
   private createControl(control: Control): HTMLElement {

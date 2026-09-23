@@ -13,7 +13,8 @@ const numberOrText = (value: unknown): unknown => {
 
 const rows = (workbook: XLSX.WorkBook, sheetName: string): Row[] => {
   const sheet = workbook.Sheets[sheetName];
-  return sheet ? XLSX.utils.sheet_to_json<Row>(sheet, { defval: undefined }) : [];
+  // 設定檔的第 1 列是標題、第 2 列留白，欄位名稱從第 3 列開始。
+  return sheet ? XLSX.utils.sheet_to_json<Row>(sheet, { range: 2, defval: undefined }) : [];
 };
 
 const setPath = (target: Record<string, any>, path: string, value: unknown): void => {

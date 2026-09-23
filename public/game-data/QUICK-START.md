@@ -14,6 +14,10 @@ Assets      圖片路徑、Spritesheet 大小與 Placeholder
 
 修改後請直接儲存。圖片仍需放到 `public/assets/`，Assets 的 `path` 填 `assets/...`。本地執行 `pnpm dev` 後按 `Ctrl+F5` 就會看到變更；確認無誤再提交 GitHub。若 Excel 檔案損壞或無法讀取，遊戲會退回使用下方的 JSON 設定。
 
+玩家變黑與回色可在 Balance 調整 `player.color.darkenPerSecond`、`player.color.restorePerSecond`、`player.color.minimumBrightness`。在 Items 的 `restoresColor` 欄填 `1` 可讓該道具於 `effectDuration` 秒內逐漸恢復玩家原色，填 `0` 則不影響顏色。重複吃到回色道具會重新計時；效果到期後繼續變黑。
+
+怪物生成可在 Balance 調整 `enemies.earlyAgeSpawnIntervalMultiplier`；目前未滿 `age.slowStart`（40 歲）時為 `0.8`，代表生成間隔是原本的 80%，40 歲起恢復目前的生成規則。
+
 ## A. 單張圖片（沒有逐格動畫）
 
 把圖放到：
@@ -40,12 +44,14 @@ public/assets/player/player.png
 public/assets/player/player-sheet.png
 ```
 
-每格 64×64，總共 30 格：
+每格 64×64，總共 54 格：
 
 ```text
 [idleDown 0-1 / walkDown 0-5]
 [walkUp 6-11] [walkSide 12-17]
 [hurt 18-23] [death 24-29]
+[hurtUp 30-35] [hurtSide 36-41]
+[deathUp 42-47] [deathSide 48-53]
 ```
 
 ### 2. assets.json
@@ -70,7 +76,11 @@ public/assets/player/player-sheet.png
   "walkUp": { "key": "player_walk_up", "texture": "player", "startFrame": 6, "endFrame": 11, "frameRate": 10, "repeat": -1 },
   "walkSide": { "key": "player_walk_side", "texture": "player", "startFrame": 12, "endFrame": 17, "frameRate": 10, "repeat": -1 },
   "hurt":  { "key": "player_hurt",  "texture": "player", "startFrame": 18, "endFrame": 23, "frameRate": 12, "repeat": 0 },
-  "death": { "key": "player_death", "texture": "player", "startFrame": 24, "endFrame": 29, "frameRate": 9, "repeat": 0 }
+  "death": { "key": "player_death", "texture": "player", "startFrame": 24, "endFrame": 29, "frameRate": 9, "repeat": 0 },
+  "hurtUp": { "key": "player_hurt_up", "texture": "player", "startFrame": 30, "endFrame": 35, "frameRate": 12, "repeat": 0 },
+  "hurtSide": { "key": "player_hurt_side", "texture": "player", "startFrame": 36, "endFrame": 41, "frameRate": 12, "repeat": 0 },
+  "deathUp": { "key": "player_death_up", "texture": "player", "startFrame": 42, "endFrame": 47, "frameRate": 9, "repeat": 0 },
+  "deathSide": { "key": "player_death_side", "texture": "player", "startFrame": 48, "endFrame": 53, "frameRate": 9, "repeat": 0 }
 }
 ```
 
@@ -83,16 +93,20 @@ public/assets/player/player-sheet.png
 動畫範圍：animations.json 的 startFrame / endFrame
 ```
 
-`idleDown`、`walkDown`、`walkUp`、`walkSide`、`hurt`、`death` 這些名稱不要改。JSON 不可加入註解，也不要在最後一項加逗號。圖片找不到時會自動使用 Placeholder。
+`idleDown`、`walkDown`、`walkUp`、`walkSide`、`hurt`、`hurtUp`、`hurtSide`、`death`、`deathUp`、`deathSide` 這些名稱不要改。JSON 不可加入註解，也不要在最後一項加逗號。圖片找不到時會自動使用 Placeholder。
 
-玩家建議使用 5 列、每列 6 格的 spritesheet（共 30 格）：
+玩家使用橫向 54 格 spritesheet，每組 6 格：
 
 ```text
-第 1 列：下 (0-5)
-第 2 列：上 (6-11)
-第 3 列：側面 (12-17，左右共用並翻轉)
-第 4 列：受傷 (18-23)
-第 5 列：死亡 (24-29)
+第 1 組：下 (0-5)
+第 2 組：上 (6-11)
+第 3 組：側面 (12-17，左右共用並翻轉)
+第 4 組：正面受傷 (18-23)
+第 5 組：正面死亡 (24-29)
+第 6 組：背面受傷 (30-35)
+第 7 組：側面受傷 (36-41，左右共用並翻轉)
+第 8 組：背面死亡 (42-47)
+第 9 組：側面死亡 (48-53，左右共用並翻轉)
 ```
 
 ## C. 新增怪物
@@ -112,6 +126,23 @@ public/assets/player/player-sheet.png
 ```
 
 這個例子會使用既有近戰圖片與動畫，但速度更快。`spawnWeight` 越大，隨機出現機率越高。
+
+### 蚊子衝刺行為
+
+`behavior` 填 `dashRetreat` 可以使用共用的「接近、衝刺、逃離、冷卻」行為。可調整欄位：
+
+```text
+triggerRange          觸發衝刺距離
+dashSpeed             衝刺速度
+dashEndDistance      未命中時，和玩家距離超過此值就回到追蹤
+retreatSpeed          逃離速度
+retreatDuration       逃離秒數
+statusEffect          碰撞後狀態名稱
+statusDamagePerSecond 狀態每秒傷害
+statusDuration        狀態持續秒數
+```
+
+蚊子的 `statusEffect` 使用 `mosquitoBite`，玩家被撞到後會在 HUD 顯示「蚊蟲叮咬中」，並持續扣血。
 
 ### 沿用遠程行為
 
@@ -142,4 +173,4 @@ public/assets/player/player-sheet.png
 }
 ```
 
-然後把 `enemies.json` 的 `texture` 改成 `enemyFast`。若新怪物有完全不同的 AI（例如衝刺、分裂、召喚），才需要工程師新增 `behavior` 程式；單純調整血量、速度、傷害、射程與外觀都不需要改核心程式。
+然後把 `enemies.json` 的 `texture` 改成 `enemyFast`。目前 `melee`、`ranged`、`dashRetreat` 是共用行為；分裂、召喚、改變地形等全新 AI 才需要工程師新增 `behavior` 程式。

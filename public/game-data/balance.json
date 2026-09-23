@@ -4,13 +4,15 @@
     "maxHp": 100,
     "collisionRadius": 18,
     "invulnerabilitySeconds": 0.45,
-    "moveSpeed": { "start": 260, "minimum": 90, "decayPerSecond": 1.4 }
+    "moveSpeed": { "start": 260, "minimum": 90, "maximum": 360, "decayPerSecond": 1.4 },
+    "color": { "darkenPerSecond": 0.02, "restorePerSecond": 0.25, "minimumBrightness": 0.08 }
   },
-  "lantern": { "radius": { "start": 210, "minimum": 75, "decayPerSecond": 1.05 } },
-  "lightDamage": { "dps": { "start": 28, "minimum": 5, "decayPerSecond": 0.18 } },
-  "damageReduction": { "ratio": { "start": 0.55, "minimum": 0.08, "decayPerSecond": 0.004 } },
-  "healthDrain": { "startPerSecond": 0.8, "increasePerSecond": 0.035, "curve": "linear", "quadraticFactor": 0.0007 },
+  "lantern": { "radius": { "start": 210, "minimum": 75, "maximum": 300, "decayPerSecond": 1.05 } },
+  "lightDamage": { "dps": { "start": 28, "minimum": 5, "maximum": 50, "decayPerSecond": 0.18 } },
+  "damageReduction": { "ratio": { "start": 0.55, "minimum": 0.08, "maximum": 0.95, "decayPerSecond": 0.004 } },
+  "healthDrain": { "startPerSecond": -1.2, "increasePerSecond": 0.03, "ageMultiplierScale": 0.5, "curve": "linear", "quadraticFactor": 0.0007 },
+  "age": { "secondsPerYear": 3, "slowStart": 40, "mediumStart": 50, "fastStart": 60, "slowMultiplier": 0.8, "mediumMultiplier": 1.7, "fastMultiplier": 4 },
   "pickups": { "spawnInterval": 8, "lifetime": 14, "pickupRange": 34, "sharedHealthDrainReduction": 0.5, "sharedEffectDuration": 5 },
-  "enemies": { "spawnInterval": 2.2, "minimumSpawnInterval": 0.55, "spawnIntervalDecayPerSecond": 0.012, "countStart": 1, "countIncreaseEverySeconds": 35, "countMaximum": 4 },
+  "enemies": { "spawnInterval": 4.5, "earlyAgeSpawnIntervalMultiplier": 0.8, "minimumSpawnInterval": 1.8, "spawnIntervalDecayPerSecond": 0.0035, "countStart": 2, "countIncreaseAmount": 2, "countIncreaseEverySeconds": 120, "countMaximum": 6 },
   "projectile": { "lifetime": 5, "radius": 6 }
 }

@@ -11,6 +11,10 @@ export const ANIMATIONS: Record<string, Record<string, AnimationDefinition>> = {
     walkSide: { key: 'player_walk_side', texture: 'player', startFrame: 12, endFrame: 17, frameRate: 10, repeat: -1 },
     hurt: { key: 'player_hurt', texture: 'player', startFrame: 18, endFrame: 23, frameRate: 12, repeat: 0 },
     death: { key: 'player_death', texture: 'player', startFrame: 24, endFrame: 29, frameRate: 9, repeat: 0 },
+    hurtUp: { key: 'player_hurt_up', texture: 'player', startFrame: 30, endFrame: 35, frameRate: 12, repeat: 0 },
+    hurtSide: { key: 'player_hurt_side', texture: 'player', startFrame: 36, endFrame: 41, frameRate: 12, repeat: 0 },
+    deathUp: { key: 'player_death_up', texture: 'player', startFrame: 42, endFrame: 47, frameRate: 9, repeat: 0 },
+    deathSide: { key: 'player_death_side', texture: 'player', startFrame: 48, endFrame: 53, frameRate: 9, repeat: 0 },
   },
   enemyMelee: {
     idle: { key: 'melee_idle', texture: 'enemyMelee', startFrame: 0, endFrame: 0, frameRate: 6, repeat: -1 },
