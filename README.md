@@ -166,6 +166,14 @@ largeLampOil: {
 
 ## 企劃／非工程師資料維護方式
 
+## 編碼與中文檔案
+
+本專案所有原始碼、JSON、Markdown 與設定檔統一使用 UTF-8。專案已包含 `.vscode/settings.json` 與 `.editorconfig`，VS Code 開啟此資料夾後會使用 UTF-8，不要手動選 Big5、ANSI 或 GBK。
+
+如果 VS Code 已經把某個檔案顯示成亂碼，請先關閉該檔案，再用右下角編碼按鈕選擇 `Reopen with Encoding` → `UTF-8`；確認文字正常後再選 `Save with Encoding` → `UTF-8`。
+
+PowerShell 終端機的文字顯示編碼和 VS Code 編輯器是兩件事；若只有終端機亂碼，可先執行 `chcp 65001`，不需要改動遊戲檔案。
+
 正式遊戲執行時會優先讀取 `public/game-data/` 的 JSON；若檔案不存在或格式有誤，才會退回 `src/config/` 內建預設值。日常調整建議只修改這個資料夾：
 
 ```text
