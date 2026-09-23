@@ -65,3 +65,52 @@ public/assets/player/player-sheet.png
 ```
 
 `idle`、`walk`、`hurt`、`death` 這四個名稱不要改。JSON 不可加入註解，也不要在最後一項加逗號。圖片找不到時會自動使用 Placeholder。
+
+## C. 新增怪物
+
+### 沿用近戰行為（不用改程式）
+
+在 `enemies.json` 的最外層加入：
+
+```json
+"fastEnemy": {
+  "id": "fastEnemy", "name": "迅捷怪", "hp": 35, "speed": 190,
+  "contactDamage": 8, "attackInterval": 0.6,
+  "projectileSpeed": 0, "projectileDamage": 0, "range": 0,
+  "preferredDistance": 0, "texture": "enemyMelee",
+  "animations": "enemyMelee", "behavior": "melee", "spawnWeight": 0.2
+}
+```
+
+這個例子會使用既有近戰圖片與動畫，但速度更快。`spawnWeight` 越大，隨機出現機率越高。
+
+### 沿用遠程行為
+
+把上面幾個欄位改成：
+
+```json
+"projectileSpeed": 300,
+"projectileDamage": 16,
+"range": 500,
+"preferredDistance": 320,
+"texture": "enemyRanged",
+"animations": "enemyRanged",
+"behavior": "ranged"
+```
+
+### 使用新圖片
+
+先把圖片放入 `public/assets/enemies/`，再在 `assets.json` 加入同名設定：
+
+```json
+"enemyFast": {
+  "texture": "enemyFast",
+  "path": "assets/enemies/fast.png",
+  "scale": 1,
+  "origin": { "x": 0.5, "y": 0.5 },
+  "depth": 5,
+  "placeholder": { "shape": "circle", "color": 16753920, "width": 34, "height": 34 }
+}
+```
+
+然後把 `enemies.json` 的 `texture` 改成 `enemyFast`。若新怪物有完全不同的 AI（例如衝刺、分裂、召喚），才需要工程師新增 `behavior` 程式；單純調整血量、速度、傷害、射程與外觀都不需要改核心程式。
