@@ -18,6 +18,8 @@ Assets      圖片路徑、Spritesheet 大小與 Placeholder
 
 怪物生成可在 Balance 調整 `enemies.earlyAgeSpawnIntervalMultiplier`；目前未滿 `age.slowStart`（40 歲）時為 `0.8`，代表生成間隔是原本的 80%，40 歲起恢復目前的生成規則。
 
+`青春果` 在有效年齡 35 歲後才會出現。每吃一個，遊戲中的有效年齡永久減少 1 歲，可累積；結算年齡仍依遊玩秒數除以 `age.secondsPerYear` 計算。可在 Items 工作表調整 `value` 和 `minimumAge`。
+
 ## A. 單張圖片（沒有逐格動畫）
 
 把圖放到：

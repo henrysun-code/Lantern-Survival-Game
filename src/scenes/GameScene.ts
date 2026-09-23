@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { ASSETS } from '../config/assets';
 import { Player } from '../entities/Player';
 import { Enemy } from '../entities/Enemy';
 import { Pickup } from '../entities/Pickup';
@@ -11,6 +12,8 @@ import { GameHUD } from '../ui/GameHUD';
 import { DebugPanel } from '../ui/DebugPanel';
 import { TouchControls } from '../ui/TouchControls';
 
+const LANTERN_GLOW_TEXTURE = 'lanternGlowGradient';
+
 export class GameScene extends Phaser.Scene {
   private player!: Player;
   private enemies!: Phaser.Physics.Arcade.Group;
@@ -22,12 +25,13 @@ export class GameScene extends Phaser.Scene {
   private hud!: GameHUD;
   private panel!: DebugPanel;
   private touchControls!: TouchControls;
-  private backdrop!: Phaser.GameObjects.Graphics;
+  private backdrop?: Phaser.GameObjects.Image;
+  private backdropFallback?: Phaser.GameObjects.Graphics;
   private gameOverTitle?: Phaser.GameObjects.Text;
   private gameOverHint?: Phaser.GameObjects.Text;
   private viewportWidth = 0;
   private viewportHeight = 0;
-  private light!: Phaser.GameObjects.Graphics;
+  private light!: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
   private debugGraphics!: Phaser.GameObjects.Graphics;
   private elapsed = 0;
   private kills = 0;
@@ -53,9 +57,15 @@ export class GameScene extends Phaser.Scene {
     this.physics.resume();
     this.physics.world.setBounds(0, 0, this.scale.width, this.scale.height);
     this.createBackdrop();
-    this.light = this.add.graphics().setDepth(1);
+    this.createLanternGlowTexture();
     this.debugGraphics = this.add.graphics().setDepth(50);
     this.player = new Player(this, this.scale.width / 2, this.scale.height / 2);
+    this.light = this.textures.exists(LANTERN_GLOW_TEXTURE)
+      ? this.add.image(this.player.x, this.player.y, LANTERN_GLOW_TEXTURE)
+        .setDepth(1)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setAlpha(0.82)
+      : this.add.graphics().setDepth(1);
     this.enemies = this.physics.add.group({ runChildUpdate: false });
     this.pickups = this.physics.add.group({ runChildUpdate: false });
     this.projectiles = this.physics.add.group({ runChildUpdate: false });
@@ -92,11 +102,11 @@ export class GameScene extends Phaser.Scene {
     }
     const dt = Math.min(deltaMs / 1000, 0.05);
     this.elapsed += dt;
-    const age = this.decaySystem.ageYears(this.elapsed);
+    const age = this.decaySystem.effectiveAgeYears(this.elapsed, this.player.ageReductionYears);
     const ageDecayMultiplier = this.decaySystem.decayMultiplier(age);
     this.player.updateMovement(this.touchControls.getDirection());
     this.decaySystem.update(this.player, dt, age);
-    this.spawnSystem.update(this.elapsed);
+    this.spawnSystem.update(this.elapsed, age);
     this.updateEnemies(dt);
     this.updateProjectiles();
     this.updatePickups();
@@ -127,6 +137,7 @@ export class GameScene extends Phaser.Scene {
 
   private fireProjectile(enemy: Enemy): void {
     const config = enemy.definition;
+    enemy.playAttackAnimation();
     const projectile = new Projectile(this, enemy.x, enemy.y);
     projectile.damage = config.projectileDamage;
     projectile.bornAt = this.elapsed;
@@ -162,6 +173,7 @@ export class GameScene extends Phaser.Scene {
     const damage = this.damageSystem.mitigatedDamage(this.player, enemy.x, enemy.y, enemy.definition.contactDamage);
     if (this.player.takeDamage(damage, this.elapsed)) {
       enemy.lastAttackAt = this.elapsed;
+      enemy.playAttackAnimation();
       enemy.recordContactHit();
       const definition = enemy.definition;
       if (definition.statusEffect && definition.statusDamagePerSecond && definition.statusDuration) {
@@ -180,16 +192,25 @@ export class GameScene extends Phaser.Scene {
     if (!pickup.active) return;
     const item = pickup.definition;
     this.player.applyPickup(item.effectType, item.value, item.sharedHealthDrainReduction, item.effectDuration, this.elapsed, item.restoresColor);
-    this.showFloatingText(pickup.x, pickup.y, `${item.name} +${item.value}${item.restoresColor ? ' · 回色' : ''}`);
+    const message = item.effectType === 'ageReduction'
+      ? `${item.name} · 年齡 -${Math.floor(item.value)} 歲`
+      : `${item.name} +${item.value}${item.restoresColor ? ' · 回色' : ''}`;
+    this.showFloatingText(pickup.x, pickup.y, message);
     pickup.destroy();
   }
 
   private drawLight(): void {
+    const diameter = this.player.lightRadius * 2;
+    if (this.light instanceof Phaser.GameObjects.Image) {
+      this.light
+        .setPosition(this.player.x, this.player.y)
+        .setDisplaySize(diameter, diameter);
+      return;
+    }
     this.light.clear();
-    this.light.fillStyle(0xffd76a, 0.075);
-    this.light.fillCircle(this.player.x, this.player.y, this.player.lightRadius);
-    this.light.lineStyle(2, 0xffdc7a, 0.32);
-    this.light.strokeCircle(this.player.x, this.player.y, this.player.lightRadius);
+    this.light.fillStyle(0xffb957, 0.06).fillCircle(this.player.x, this.player.y, this.player.lightRadius);
+    this.light.fillStyle(0xffd27f, 0.06).fillCircle(this.player.x, this.player.y, this.player.lightRadius * 0.68);
+    this.light.fillStyle(0xffebbc, 0.05).fillCircle(this.player.x, this.player.y, this.player.lightRadius * 0.32);
   }
 
   private drawDebug(): void {
@@ -205,16 +226,48 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createBackdrop(): void {
-    this.backdrop = this.add.graphics().setDepth(0);
+    const background = ASSETS.background;
+    if (background && this.textures.exists(background.texture)) {
+      this.backdrop = this.add.image(0, 0, background.texture).setDepth(background.depth ?? -1);
+    } else {
+      this.backdropFallback = this.add.graphics().setDepth(0);
+    }
     this.drawBackdrop();
   }
 
+  private createLanternGlowTexture(): void {
+    if (this.textures.exists(LANTERN_GLOW_TEXTURE)) return;
+    const size = 256;
+    const center = size / 2;
+    const texture = this.textures.createCanvas(LANTERN_GLOW_TEXTURE, size, size);
+    if (!texture) return;
+    const context = texture.getContext();
+    const gradient = context.createRadialGradient(center, center, 0, center, center, center);
+    gradient.addColorStop(0, 'rgba(255, 246, 202, 0.82)');
+    gradient.addColorStop(0.12, 'rgba(255, 228, 151, 0.62)');
+    gradient.addColorStop(0.34, 'rgba(255, 199, 105, 0.29)');
+    gradient.addColorStop(0.68, 'rgba(255, 174, 87, 0.08)');
+    gradient.addColorStop(1, 'rgba(255, 162, 77, 0)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, size, size);
+    texture.refresh();
+  }
+
   private drawBackdrop(): void {
-    this.backdrop.clear();
-    this.backdrop.fillStyle(0x0b0f18, 1).fillRect(0, 0, this.scale.width, this.scale.height);
-    this.backdrop.lineStyle(1, 0x1b2535, 0.45);
-    for (let x = 0; x <= this.scale.width; x += 64) this.backdrop.lineBetween(x, 0, x, this.scale.height);
-    for (let y = 0; y <= this.scale.height; y += 64) this.backdrop.lineBetween(0, y, this.scale.width, y);
+    if (this.backdrop) {
+      const source = this.textures.get(ASSETS.background.texture).getSourceImage();
+      const scale = Math.max(this.scale.width / source.width, this.scale.height / source.height);
+      this.backdrop
+        .setPosition(this.scale.width / 2, this.scale.height / 2)
+        .setDisplaySize(source.width * scale, source.height * scale);
+      return;
+    }
+    if (!this.backdropFallback) return;
+    this.backdropFallback.clear();
+    this.backdropFallback.fillStyle(0x0b0f18, 1).fillRect(0, 0, this.scale.width, this.scale.height);
+    this.backdropFallback.lineStyle(1, 0x1b2535, 0.45);
+    for (let x = 0; x <= this.scale.width; x += 64) this.backdropFallback.lineBetween(x, 0, x, this.scale.height);
+    for (let y = 0; y <= this.scale.height; y += 64) this.backdropFallback.lineBetween(0, y, this.scale.width, y);
   }
 
   private handleResize(): void {
@@ -240,7 +293,7 @@ export class GameScene extends Phaser.Scene {
     const compact = this.scale.width < 500 || this.scale.height < 520;
     this.gameOverTitle?.setFontSize(compact ? 36 : 54);
     this.gameOverHint?.setFontSize(compact ? 16 : 21);
-    this.gameOverHint?.setText(`活了 ${this.decaySystem.ageYears(this.elapsed)} 歲 · ${this.elapsed.toFixed(1)} 秒 · 擊殺 ${this.kills}\n${compact ? '點擊重新開始' : '按 R 或點擊此處重新開始'}`);
+    this.gameOverHint?.setText(`結算年齡 ${this.decaySystem.ageYears(this.elapsed)} 歲 · ${this.elapsed.toFixed(1)} 秒 · 擊殺 ${this.kills}\n${compact ? '點擊重新開始' : '按 R 或點擊此處重新開始'}`);
   }
 
   private showFloatingText(x: number, y: number, message: string): void {
@@ -255,7 +308,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.pause();
     const compact = this.scale.width < 500 || this.scale.height < 520;
     this.gameOverTitle = this.add.text(this.scale.width / 2, this.scale.height / 2 - 28, '燈火熄滅', { fontSize: compact ? '36px' : '54px', color: '#ffe5a0', fontStyle: 'bold', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5).setDepth(200);
-    this.gameOverHint = this.add.text(this.scale.width / 2, this.scale.height / 2 + 42, `活了 ${this.decaySystem.ageYears(this.elapsed)} 歲 · ${this.elapsed.toFixed(1)} 秒 · 擊殺 ${this.kills}\n${compact ? '點擊重新開始' : '按 R 或點擊此處重新開始'}`, { align: 'center', fontSize: compact ? '16px' : '21px', color: '#d7dbea', backgroundColor: '#101520cc', padding: { x: 18, y: 12 } })
+    this.gameOverHint = this.add.text(this.scale.width / 2, this.scale.height / 2 + 42, `結算年齡 ${this.decaySystem.ageYears(this.elapsed)} 歲 · ${this.elapsed.toFixed(1)} 秒 · 擊殺 ${this.kills}\n${compact ? '點擊重新開始' : '按 R 或點擊此處重新開始'}`, { align: 'center', fontSize: compact ? '16px' : '21px', color: '#d7dbea', backgroundColor: '#101520cc', padding: { x: 18, y: 12 } })
       .setOrigin(0.5)
       .setDepth(200)
       .setInteractive({ useHandCursor: true })

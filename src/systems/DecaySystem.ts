@@ -3,7 +3,12 @@ import type { Player } from '../entities/Player';
 
 export class DecaySystem {
   ageYears(elapsedSeconds: number): number {
-    return Math.floor(elapsedSeconds / runtimeConfig.config.balance.age.secondsPerYear);
+    const years = elapsedSeconds / runtimeConfig.config.balance.age.secondsPerYear;
+    return Math.max(0, Math.floor(years + 1e-9));
+  }
+
+  effectiveAgeYears(elapsedSeconds: number, reducedYears: number): number {
+    return Math.max(0, this.ageYears(elapsedSeconds) - Math.max(0, Math.floor(reducedYears)));
   }
 
   decayMultiplier(ageYears: number): number {

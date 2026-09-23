@@ -21,7 +21,8 @@ export class GameHUD {
     this.text.setPosition(compact ? 8 : 18, compact ? 8 : 16);
     if (compact) {
       this.text.setText([
-        `年齡 ${stats.age} 歲  時間 ${stats.elapsed.toFixed(1)} s`,
+        `有效年齡 ${stats.age} 歲  時間 ${stats.elapsed.toFixed(1)} s`,
+        ...(player.ageReductionYears > 0 ? [`累積減齡 ${player.ageReductionYears} 歲`] : []),
         `擊殺 ${stats.kills}`,
         `HP ${Math.ceil(player.hp)}  光圈 ${Math.round(player.lightRadius)}`,
         healthFlow,
@@ -32,7 +33,8 @@ export class GameHUD {
     }
     this.text.setText([
       `時間  ${stats.elapsed.toFixed(1)} s`,
-      `年齡  ${stats.age} 歲`,
+      `有效年齡  ${stats.age} 歲`,
+      ...(player.ageReductionYears > 0 ? [`累積減齡  ${player.ageReductionYears} 歲`] : []),
       `HP    ${player.hp.toFixed(1)}`,
       `原色  ${(player.colorBrightness * 100).toFixed(0)} %`,
       `回色  ${restoreRemaining > 0 ? `${restoreRemaining.toFixed(1)} s` : '—'}`,

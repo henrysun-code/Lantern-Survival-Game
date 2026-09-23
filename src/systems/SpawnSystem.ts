@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { runtimeConfig } from '../config/runtime';
 import { Enemy } from '../entities/Enemy';
 import { Pickup } from '../entities/Pickup';
+import type { ItemDefinition } from '../config/types';
 
 export class SpawnSystem {
   private nextEnemyAt = 0;
@@ -9,12 +10,11 @@ export class SpawnSystem {
 
   constructor(private scene: Phaser.Scene, private enemies: Phaser.Physics.Arcade.Group, private pickups: Phaser.Physics.Arcade.Group) {}
 
-  update(nowSeconds: number): void {
+  update(nowSeconds: number, currentAgeYears = Math.floor(nowSeconds / runtimeConfig.config.balance.age.secondsPerYear + 1e-9)): void {
     const balance = runtimeConfig.config.balance;
     if (nowSeconds >= this.nextEnemyAt) {
       const baseInterval = balance.enemies.spawnInterval - nowSeconds * balance.enemies.spawnIntervalDecayPerSecond;
-      const age = Math.floor(nowSeconds / balance.age.secondsPerYear);
-      const earlyAgeMultiplier = age < balance.age.slowStart
+      const earlyAgeMultiplier = currentAgeYears < balance.age.slowStart
         ? (balance.enemies.earlyAgeSpawnIntervalMultiplier ?? 1)
         : 1;
       const interval = Math.max(balance.enemies.minimumSpawnInterval, baseInterval * earlyAgeMultiplier);
@@ -23,7 +23,7 @@ export class SpawnSystem {
       this.nextEnemyAt = nowSeconds + interval;
     }
     if (nowSeconds >= this.nextPickupAt) {
-      this.spawnPickup(nowSeconds);
+      this.spawnPickup(nowSeconds, currentAgeYears);
       this.nextPickupAt = nowSeconds + balance.pickups.spawnInterval;
     }
   }
@@ -41,12 +41,14 @@ export class SpawnSystem {
     this.enemies.add(new Enemy(this.scene, x, y, chosen.id));
   }
 
-  private spawnPickup(nowSeconds: number): void {
-    const ids = Object.keys(runtimeConfig.config.items);
-    const id = Phaser.Utils.Array.GetRandom(ids);
+  private spawnPickup(nowSeconds: number, currentAgeYears: number): void {
+    const eligibleItems = Object.values(runtimeConfig.config.items as Record<string, ItemDefinition>)
+      .filter((item) => currentAgeYears >= (item.minimumAge ?? 0));
+    if (eligibleItems.length === 0) return;
+    const item = Phaser.Utils.Array.GetRandom(eligibleItems);
     const x = Phaser.Math.Between(70, this.scene.scale.width - 70);
     const y = Phaser.Math.Between(70, this.scene.scale.height - 70);
-    const pickup = new Pickup(this.scene, x, y, id);
+    const pickup = new Pickup(this.scene, x, y, item.id);
     pickup.bornAt = nowSeconds;
     this.pickups.add(pickup);
   }

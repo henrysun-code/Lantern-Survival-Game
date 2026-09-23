@@ -49,7 +49,7 @@ export type EnemyDefinition = {
   statusDuration?: number;
 };
 
-export type ItemEffect = 'lightRadius' | 'moveSpeed' | 'lightDamage' | 'damageReduction';
+export type ItemEffect = 'lightRadius' | 'moveSpeed' | 'lightDamage' | 'damageReduction' | 'ageReduction';
 export type ItemDefinition = {
   id: string;
   name: string;
@@ -58,5 +58,6 @@ export type ItemDefinition = {
   value: number;
   sharedHealthDrainReduction: number;
   effectDuration: number;
+  minimumAge?: number;
   restoresColor?: boolean;
 };

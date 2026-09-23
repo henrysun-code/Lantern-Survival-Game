@@ -153,7 +153,7 @@ largeLampOil: {
 }
 ```
 
-現有 `effectType`：`lightRadius`、`moveSpeed`、`lightDamage`、`damageReduction`。同類型的新道具不需要修改 Pickup。新效果種類才需要擴充 `ItemEffect` 與 `Player.applyPickup()`。
+現有 `effectType`：`lightRadius`、`moveSpeed`、`lightDamage`、`damageReduction`、`ageReduction`。設定 `minimumAge` 可限制道具從幾歲開始出現；`ageReduction` 道具會永久降低遊戲中的有效年齡，結算仍依遊玩秒數計算實際年齡。
 
 所有道具的個別補值不會停止自然衰退，只會把目前數值向上補；共通效果則在指定秒數內降低持續生命流失。
 

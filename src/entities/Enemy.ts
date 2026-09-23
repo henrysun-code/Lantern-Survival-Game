@@ -1,12 +1,16 @@
 import Phaser from 'phaser';
 import type { EnemyDefinition } from '../config/types';
 import { runtimeConfig } from '../config/runtime';
+import { ANIMATIONS } from '../config/animations';
 import { applyVisual, playConfiguredAnimation, resolveTexture } from '../utils/visuals';
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   hp: number;
   lastAttackAt = -Infinity;
   private animationState = '';
+  private animationLockedUntil = 0;
+  private lastHurtAnimationAt = -Infinity;
+  private dead = false;
   private readonly maxHp: number;
   private readonly healthBar: Phaser.GameObjects.Graphics;
   private dashPhase: 'approach' | 'dash' | 'retreat' | 'cooldown' = 'approach';
@@ -48,6 +52,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   get definition(): EnemyDefinition { return runtimeConfig.config.enemies[this.enemyId]; }
 
   updateBehavior(player: Phaser.GameObjects.Sprite, deltaSeconds: number): void {
+    if (this.dead) return;
     const config = this.definition;
     const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
     const direction = new Phaser.Math.Vector2(player.x - this.x, player.y - this.y).normalize();
@@ -61,7 +66,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       else if (distance <= config.preferredDistance) velocity = 0;
     }
     this.setVelocity(direction.x * velocity, direction.y * velocity);
-    this.animationState = playConfiguredAnimation(this, config.animations, velocity ? 'move' : 'idle', this.animationState);
+    this.playLocomotion(velocity ? 'move' : 'idle');
     if (direction.x !== 0) this.setFlipX(direction.x < 0);
   }
 
@@ -78,6 +83,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.dashPhase = 'dash';
         this.dashDirection.copy(direction);
         this.dashHasHit = false;
+        this.playActionAnimation('attack');
       }
       this.setVelocity(direction.x * velocity, direction.y * velocity);
     } else if (this.dashPhase === 'dash') {
@@ -103,7 +109,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.dashPhaseRemaining <= 0) this.dashPhase = 'approach';
     }
 
-    this.animationState = playConfiguredAnimation(this, config.animations, velocity ? 'move' : 'idle', this.animationState);
+    this.playLocomotion(velocity ? 'move' : 'idle');
     const velocityX = this.body?.velocity.x ?? 0;
     if (velocityX !== 0) this.setFlipX(velocityX < 0);
   }
@@ -127,16 +133,49 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.beginRetreat(this.definition.retreatDuration ?? 1.2);
   }
 
+  playAttackAnimation(): void {
+    this.playActionAnimation('attack');
+  }
+
+  private playLocomotion(state: 'move' | 'idle'): void {
+    if (this.scene.time.now < this.animationLockedUntil) return;
+    this.animationState = playConfiguredAnimation(this, this.definition.animations, state, this.animationState);
+  }
+
+  private playActionAnimation(state: 'attack' | 'hurt'): void {
+    if (this.dead) return;
+    const group = this.definition.animations;
+    const animation = ANIMATIONS[group]?.[state];
+    this.animationState = playConfiguredAnimation(this, group, state, this.animationState);
+    if (animation) {
+      const duration = ((animation.endFrame - animation.startFrame + 1) / Math.max(1, animation.frameRate)) * 1000;
+      this.animationLockedUntil = Math.max(this.animationLockedUntil, this.scene.time.now + duration);
+    }
+  }
+
   hurt(damage: number): boolean {
+    if (this.dead) return false;
     this.hp -= damage;
     if (this.hp > 0) {
       this.setTint(0xffffff);
       this.scene.time.delayedCall(55, () => this.active && this.clearTint());
+      if (this.scene.time.now - this.lastHurtAnimationAt >= 320) {
+        this.lastHurtAnimationAt = this.scene.time.now;
+        this.playActionAnimation('hurt');
+      }
       return false;
     }
+    this.dead = true;
     this.animationState = playConfiguredAnimation(this, this.definition.animations, 'death', this.animationState);
     this.healthBar.setVisible(false);
-    this.disableBody(true, true);
+    this.setVelocity(0, 0);
+    if (this.body instanceof Phaser.Physics.Arcade.Body) this.body.enable = false;
+    const deathAnimation = ANIMATIONS[this.definition.animations]?.death;
+    if (deathAnimation && this.scene.anims.exists(deathAnimation.key)) {
+      this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => this.destroy());
+    } else {
+      this.scene.time.delayedCall(500, () => { if (this.active) this.destroy(); });
+    }
     return true;
   }
 }

@@ -11,6 +11,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   lightRadius = 0;
   lightDamage = 0;
   damageReduction = 0;
+  ageReductionYears = 0;
   drainReductionUntil = 0;
   drainReductionMultiplier = 1;
   colorBrightness = 1;
@@ -120,6 +121,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   applyPickup(effect: ItemEffect, value: number, reduction: number, duration: number, nowSeconds: number, restoresColor = false): void {
+    if (effect === 'ageReduction') {
+      this.ageReductionYears += Math.max(0, Math.floor(value));
+      return;
+    }
     if (effect === 'lightRadius') this.lightRadius = Math.min(runtimeConfig.config.balance.lantern.radius.maximum, this.lightRadius + value);
     if (effect === 'moveSpeed') this.moveSpeed = Math.min(runtimeConfig.config.balance.player.moveSpeed.maximum, this.moveSpeed + value);
     if (effect === 'lightDamage') this.lightDamage = Math.min(runtimeConfig.config.balance.lightDamage.dps.maximum, this.lightDamage + value);

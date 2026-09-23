@@ -20,6 +20,7 @@ export class BootScene extends Phaser.Scene {
     await this.loadContentData();
     await this.reloadConfiguredAssets();
     Object.entries(ASSETS).forEach(([key, asset]) => {
+      if (key === 'background' && !this.textures.exists(asset.texture)) return;
       if (!this.textures.exists(asset.texture)) this.createPlaceholder(fallbackKey(key), asset.placeholder);
     });
     createConfiguredAnimations(this);
