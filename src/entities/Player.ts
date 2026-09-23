@@ -38,6 +38,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const y = Number(this.cursors.down.isDown || this.wasd.S.isDown) - Number(this.cursors.up.isDown || this.wasd.W.isDown);
     const direction = new Phaser.Math.Vector2(x, y).normalize();
     this.setVelocity(direction.x * this.moveSpeed, direction.y * this.moveSpeed);
+    if (this.hp <= 0) {
+      this.playDeathAnimation();
+      return;
+    }
+    if (this.anims.isPlaying && this.anims.currentAnim?.key === 'player_hurt') return;
     if (!direction.lengthSq()) {
       this.animationState = playConfiguredAnimation(this, 'player', 'idleDown', this.animationState);
       this.setFlipX(false);
@@ -59,6 +64,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.time.delayedCall(120, () => this.active && this.clearTint());
     this.animationState = playConfiguredAnimation(this, 'player', this.hp <= 0 ? 'death' : 'hurt', this.animationState);
     return true;
+  }
+
+  playDeathAnimation(): void {
+    this.animationState = playConfiguredAnimation(this, 'player', 'death', this.animationState);
   }
 
   applyPickup(effect: ItemEffect, value: number, reduction: number, duration: number, nowSeconds: number): void {

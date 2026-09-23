@@ -5,7 +5,7 @@ import type { VisualConfig } from './types';
  * 若是 spritesheet，再填 spritesheet.frameWidth / frameHeight。
  */
 export const ASSETS: Record<string, VisualConfig> = {
-  player: { texture: 'player', path: '', scale: 1, origin: { x: 0.5, y: 0.65 }, depth: 10, placeholder: { shape: 'circle', color: 0xf4f7ff, width: 38, height: 38 } },
+  player: { texture: 'player', path: 'assets/player/player-sheet.png', spritesheet: { frameWidth: 64, frameHeight: 64 }, scale: 1, origin: { x: 0.5, y: 0.65 }, depth: 10, placeholder: { shape: 'circle', color: 0xf4f7ff, width: 38, height: 38 } },
   enemyMelee: { texture: 'enemyMelee', path: '', origin: { x: 0.5, y: 0.5 }, depth: 5, placeholder: { shape: 'circle', color: 0xe84855, width: 34, height: 34 } },
   enemyRanged: { texture: 'enemyRanged', path: '', origin: { x: 0.5, y: 0.5 }, depth: 5, placeholder: { shape: 'rect', color: 0xa855f7, width: 34, height: 34 } },
   projectile: { texture: 'projectile', path: '', depth: 6, placeholder: { shape: 'circle', color: 0xff75d8, width: 12, height: 12 } },

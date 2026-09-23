@@ -26,11 +26,12 @@ public/assets/player/player.png
 public/assets/player/player-sheet.png
 ```
 
-每格 64×64，總共 15 格：
+每格 64×64，總共 30 格：
 
 ```text
-[idle 0] [idle 1] [walk 2] [walk 3] [walk 4] [walk 5] [walk 6]
-[hurt 7] [hurt 8] [hurt 9] [death 10] [death 11] [death 12] [death 13] [death 14]
+[idleDown 0-1 / walkDown 0-5]
+[walkUp 6-11] [walkSide 12-17]
+[hurt 18-23] [death 24-29]
 ```
 
 ### 2. assets.json
@@ -49,9 +50,13 @@ public/assets/player/player-sheet.png
 ```json
 "player": {
   "idle":  { "key": "player_idle",  "texture": "player", "startFrame": 0,  "endFrame": 1,  "frameRate": 6,  "repeat": -1 },
-  "walk":  { "key": "player_walk",  "texture": "player", "startFrame": 2,  "endFrame": 6,  "frameRate": 10, "repeat": -1 },
-  "hurt":  { "key": "player_hurt",  "texture": "player", "startFrame": 7,  "endFrame": 9,  "frameRate": 12, "repeat": 0 },
-  "death": { "key": "player_death", "texture": "player", "startFrame": 10, "endFrame": 14, "frameRate": 9,  "repeat": 0 }
+  "walk":  { "key": "player_walk",  "texture": "player", "startFrame": 0,  "endFrame": 5,  "frameRate": 10, "repeat": -1 },
+  "idleDown": { "key": "player_idle_down", "texture": "player", "startFrame": 0, "endFrame": 1, "frameRate": 6, "repeat": -1 },
+  "walkDown": { "key": "player_walk_down", "texture": "player", "startFrame": 0, "endFrame": 5, "frameRate": 10, "repeat": -1 },
+  "walkUp": { "key": "player_walk_up", "texture": "player", "startFrame": 6, "endFrame": 11, "frameRate": 10, "repeat": -1 },
+  "walkSide": { "key": "player_walk_side", "texture": "player", "startFrame": 12, "endFrame": 17, "frameRate": 10, "repeat": -1 },
+  "hurt":  { "key": "player_hurt",  "texture": "player", "startFrame": 18, "endFrame": 23, "frameRate": 12, "repeat": 0 },
+  "death": { "key": "player_death", "texture": "player", "startFrame": 24, "endFrame": 29, "frameRate": 9, "repeat": 0 }
 }
 ```
 

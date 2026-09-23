@@ -187,6 +187,7 @@ export class GameScene extends Phaser.Scene {
 
   private endGame(): void {
     this.gameOver = true;
+    this.player.playDeathAnimation();
     this.player.setVelocity(0).setTint(0x777777);
     this.physics.pause();
     const title = this.add.text(this.scale.width / 2, this.scale.height / 2 - 20, '燈火熄滅', { fontSize: '54px', color: '#ffe5a0', fontStyle: 'bold', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5).setDepth(200);
