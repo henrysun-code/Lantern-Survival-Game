@@ -38,8 +38,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const y = Number(this.cursors.down.isDown || this.wasd.S.isDown) - Number(this.cursors.up.isDown || this.wasd.W.isDown);
     const direction = new Phaser.Math.Vector2(x, y).normalize();
     this.setVelocity(direction.x * this.moveSpeed, direction.y * this.moveSpeed);
-    this.animationState = playConfiguredAnimation(this, 'player', direction.lengthSq() ? 'walk' : 'idle', this.animationState);
-    if (x !== 0) this.setFlipX(x < 0);
+    if (!direction.lengthSq()) {
+      this.animationState = playConfiguredAnimation(this, 'player', 'idleDown', this.animationState);
+      this.setFlipX(false);
+    } else if (Math.abs(y) > Math.abs(x)) {
+      this.animationState = playConfiguredAnimation(this, 'player', y < 0 ? 'walkUp' : 'walkDown', this.animationState);
+      this.setFlipX(false);
+    } else {
+      this.animationState = playConfiguredAnimation(this, 'player', 'walkSide', this.animationState);
+      this.setFlipX(x < 0);
+    }
   }
 
   takeDamage(amount: number, nowSeconds: number): boolean {

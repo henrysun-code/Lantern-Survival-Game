@@ -5,8 +5,12 @@ export const ANIMATIONS: Record<string, Record<string, AnimationDefinition>> = {
   player: {
     idle: { key: 'player_idle', texture: 'player', startFrame: 0, endFrame: 0, frameRate: 6, repeat: -1 },
     walk: { key: 'player_walk', texture: 'player', startFrame: 0, endFrame: 5, frameRate: 10, repeat: -1 },
-    hurt: { key: 'player_hurt', texture: 'player', startFrame: 6, endFrame: 8, frameRate: 12, repeat: 0 },
-    death: { key: 'player_death', texture: 'player', startFrame: 9, endFrame: 13, frameRate: 9, repeat: 0 },
+    idleDown: { key: 'player_idle_down', texture: 'player', startFrame: 0, endFrame: 0, frameRate: 6, repeat: -1 },
+    walkDown: { key: 'player_walk_down', texture: 'player', startFrame: 0, endFrame: 5, frameRate: 10, repeat: -1 },
+    walkUp: { key: 'player_walk_up', texture: 'player', startFrame: 6, endFrame: 11, frameRate: 10, repeat: -1 },
+    walkSide: { key: 'player_walk_side', texture: 'player', startFrame: 12, endFrame: 17, frameRate: 10, repeat: -1 },
+    hurt: { key: 'player_hurt', texture: 'player', startFrame: 7, endFrame: 9, frameRate: 12, repeat: 0 },
+    death: { key: 'player_death', texture: 'player', startFrame: 10, endFrame: 14, frameRate: 9, repeat: 0 },
   },
   enemyMelee: {
     idle: { key: 'melee_idle', texture: 'enemyMelee', startFrame: 0, endFrame: 0, frameRate: 6, repeat: -1 },

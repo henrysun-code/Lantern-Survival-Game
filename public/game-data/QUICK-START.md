@@ -29,7 +29,7 @@ public/assets/player/player-sheet.png
 每格 64×64，總共 15 格：
 
 ```text
-[idle 0] [walk 1] [walk 2] [walk 3] [walk 4] [walk 5] [walk 6]
+[idle 0] [idle 1] [walk 2] [walk 3] [walk 4] [walk 5] [walk 6]
 [hurt 7] [hurt 8] [hurt 9] [death 10] [death 11] [death 12] [death 13] [death 14]
 ```
 
@@ -48,8 +48,8 @@ public/assets/player/player-sheet.png
 
 ```json
 "player": {
-  "idle":  { "key": "player_idle",  "texture": "player", "startFrame": 0,  "endFrame": 0,  "frameRate": 6,  "repeat": -1 },
-  "walk":  { "key": "player_walk",  "texture": "player", "startFrame": 1,  "endFrame": 6,  "frameRate": 10, "repeat": -1 },
+  "idle":  { "key": "player_idle",  "texture": "player", "startFrame": 0,  "endFrame": 1,  "frameRate": 6,  "repeat": -1 },
+  "walk":  { "key": "player_walk",  "texture": "player", "startFrame": 2,  "endFrame": 6,  "frameRate": 10, "repeat": -1 },
   "hurt":  { "key": "player_hurt",  "texture": "player", "startFrame": 7,  "endFrame": 9,  "frameRate": 12, "repeat": 0 },
   "death": { "key": "player_death", "texture": "player", "startFrame": 10, "endFrame": 14, "frameRate": 9,  "repeat": 0 }
 }
@@ -64,7 +64,15 @@ public/assets/player/player-sheet.png
 動畫範圍：animations.json 的 startFrame / endFrame
 ```
 
-`idle`、`walk`、`hurt`、`death` 這四個名稱不要改。JSON 不可加入註解，也不要在最後一項加逗號。圖片找不到時會自動使用 Placeholder。
+`idleDown`、`walkDown`、`walkUp`、`walkSide`、`hurt`、`death` 這些名稱不要改。JSON 不可加入註解，也不要在最後一項加逗號。圖片找不到時會自動使用 Placeholder。
+
+玩家四方向建議使用 4 列、每列 6 格的 spritesheet：
+
+```text
+第 1 列：下 (0-5)
+第 2 列：上 (6-11)
+第 3 列：側面 (12-17，左右共用並翻轉)
+```
 
 ## C. 新增怪物
 
