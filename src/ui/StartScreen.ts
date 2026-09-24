@@ -51,7 +51,7 @@ export class StartScreen {
     title.textContent = '提燈生存遊戲';
     const introduction = document.createElement('p');
     introduction.className = 'start-introduction';
-    introduction.textContent = '提起燈籠照亮黑暗、擊退怪物，收集補給並盡可能活下去。';
+    introduction.textContent = '提起燈籠照亮黑暗、擊退怪物、收集補給，並在力量隨時間衰退時努力生存下去。';
     const controls = document.createElement('p');
     controls.className = 'start-controls-hint';
     controls.textContent = '移動：WASD／方向鍵　・　手機：使用左下方搖桿';
