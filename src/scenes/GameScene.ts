@@ -8,7 +8,8 @@ import { runtimeConfig } from '../config/runtime';
 import { SpawnSystem } from '../systems/SpawnSystem';
 import { DecaySystem } from '../systems/DecaySystem';
 import { DamageSystem } from '../systems/DamageSystem';
-import { GameHUD } from '../ui/GameHUD';
+import { calculateScore, GameHUD } from '../ui/GameHUD';
+import { GameOverCard } from '../ui/GameOverCard';
 import { DebugPanel } from '../ui/DebugPanel';
 import { TouchControls } from '../ui/TouchControls';
 
@@ -27,8 +28,7 @@ export class GameScene extends Phaser.Scene {
   private touchControls!: TouchControls;
   private backdrop?: Phaser.GameObjects.Image;
   private backdropFallback?: Phaser.GameObjects.Graphics;
-  private gameOverTitle?: Phaser.GameObjects.Text;
-  private gameOverHint?: Phaser.GameObjects.Text;
+  private resultCard?: GameOverCard;
   private viewportWidth = 0;
   private viewportHeight = 0;
   private light!: Phaser.GameObjects.Image | Phaser.GameObjects.Graphics;
@@ -50,8 +50,8 @@ export class GameScene extends Phaser.Scene {
     this.kills = 0;
     this.gameOver = false;
     this.debugVisible = false;
-    this.gameOverTitle = undefined;
-    this.gameOverHint = undefined;
+    this.resultCard?.destroy();
+    this.resultCard = undefined;
     this.viewportWidth = this.scale.width;
     this.viewportHeight = this.scale.height;
     this.physics.resume();
@@ -70,7 +70,7 @@ export class GameScene extends Phaser.Scene {
     this.pickups = this.physics.add.group({ runChildUpdate: false });
     this.projectiles = this.physics.add.group({ runChildUpdate: false });
     this.spawnSystem = new SpawnSystem(this, this.enemies, this.pickups);
-    this.hud = new GameHUD(this);
+    this.hud = new GameHUD();
     this.panel = new DebugPanel(() => this.scene.restart());
     this.touchControls = new TouchControls(() => this.panel.toggle());
     this.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
@@ -87,7 +87,10 @@ export class GameScene extends Phaser.Scene {
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.panel.destroy();
+      this.hud.destroy();
       this.touchControls.destroy();
+      this.resultCard?.destroy();
+      this.resultCard = undefined;
       this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
       this.input.keyboard!.off('keydown-F3', this.toggleDebug);
       this.unsubscribeConfig?.();
@@ -98,6 +101,11 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, deltaMs: number): void {
     if (this.gameOver) {
       if (Phaser.Input.Keyboard.JustDown(this.restartKey)) this.scene.restart();
+      return;
+    }
+    // 物理碰撞傷害可能在上一個 frame 的 update 之後發生；先判死，避免回血復活。
+    if (this.player.hp <= 0) {
+      this.endGame();
       return;
     }
     const dt = Math.min(deltaMs / 1000, 0.05);
@@ -113,12 +121,26 @@ export class GameScene extends Phaser.Scene {
     this.player.updateColor(this.elapsed, dt, ageDecayMultiplier);
     this.kills += this.damageSystem.updateLightDamage(this.player, this.enemies, dt);
     this.player.updateStatusEffects(dt, this.elapsed);
+    // 持續傷害也可能在本次 update 內致死，不能讓下面的生命回復把 HP 加回來。
+    if (this.player.hp <= 0) {
+      this.endGame();
+      return;
+    }
     const drain = this.decaySystem.currentHealthDrain(age) * this.player.getDrainMultiplier(this.elapsed);
     this.player.hp = Phaser.Math.Clamp(this.player.hp - drain * dt, 0, runtimeConfig.config.balance.player.maxHp);
     this.drawLight();
     this.drawDebug();
-    this.hud.update(this.player, { elapsed: this.elapsed, age, drain, kills: this.kills, enemies: this.enemies.countActive(), fps: this.game.loop.actualFps });
+    this.updateHUD();
     if (this.player.hp <= 0) this.endGame();
+  }
+
+  private updateHUD(): void {
+    this.hud.update({
+      elapsed: this.elapsed,
+      livedAge: this.decaySystem.ageYears(this.elapsed),
+      difficultyAge: this.decaySystem.effectiveAgeYears(this.elapsed, this.player.ageReductionYears),
+      kills: this.kills,
+    });
   }
 
   private updateEnemies(deltaSeconds: number): void {
@@ -161,7 +183,6 @@ export class GameScene extends Phaser.Scene {
     const lifetime = runtimeConfig.config.balance.pickups.lifetime;
     this.pickups.getChildren().forEach((child) => {
       const pickup = child as Pickup;
-      if (pickup.definition.texture !== 'pickupLight') pickup.rotation += 0.012;
       if (Phaser.Math.Distance.Between(this.player.x, this.player.y, pickup.x, pickup.y) <= runtimeConfig.config.balance.pickups.pickupRange) this.onPickup(pickup);
       else if (this.elapsed - pickup.bornAt > lifetime) pickup.destroy();
     });
@@ -191,10 +212,30 @@ export class GameScene extends Phaser.Scene {
   private onPickup(pickup: Pickup): void {
     if (!pickup.active) return;
     const item = pickup.definition;
-    this.player.applyPickup(item.effectType, item.value, item.sharedHealthDrainReduction, item.effectDuration, this.elapsed, item.restoresColor);
-    const message = item.effectType === 'ageReduction'
-      ? `${item.name} · 年齡 -${Math.floor(item.value)} 歲`
-      : `${item.name} +${item.value}${item.restoresColor ? ' · 回色' : ''}`;
+    this.player.applyPickup(
+      item.effectType,
+      item.value,
+      item.sharedHealthDrainReduction,
+      item.effectDuration,
+      this.elapsed,
+      item.restoresColor,
+      item.ageReductionYears,
+      item.clearsStatusEffects,
+    );
+    const effectMessage = item.effectType === 'ageReduction'
+      ? `年齡 -${Math.floor(item.value)} 歲`
+      : item.effectType === 'healthDrainReduction'
+        ? `年齡扣血降低 ${Math.round((1 - item.sharedHealthDrainReduction) * 100)}%`
+        : item.effectType === 'lightRadius'
+          ? `光圈 +${item.value}`
+          : item.effectType === 'moveSpeed'
+            ? `移速 +${item.value}`
+            : `+${item.value}${item.restoresColor ? ' · 回色' : ''}`;
+    const additionalEffects = [
+      item.ageReductionYears ? `年輕 ${Math.floor(item.ageReductionYears)} 歲` : '',
+      item.clearsStatusEffects ? '解除持續傷害' : '',
+    ].filter(Boolean);
+    const message = `${item.name} · ${[effectMessage, ...additionalEffects].join(' · ')}`;
     this.showFloatingText(pickup.x, pickup.y, message);
     pickup.destroy();
   }
@@ -288,12 +329,6 @@ export class GameScene extends Phaser.Scene {
       Phaser.Math.Clamp(this.player.y, 32, Math.max(32, this.scale.height - 32)),
     );
     this.drawBackdrop();
-    this.gameOverTitle?.setPosition(this.scale.width / 2, this.scale.height / 2 - 28);
-    this.gameOverHint?.setPosition(this.scale.width / 2, this.scale.height / 2 + 42);
-    const compact = this.scale.width < 500 || this.scale.height < 520;
-    this.gameOverTitle?.setFontSize(compact ? 36 : 54);
-    this.gameOverHint?.setFontSize(compact ? 16 : 21);
-    this.gameOverHint?.setText(`結算年齡 ${this.decaySystem.ageYears(this.elapsed)} 歲 · ${this.elapsed.toFixed(1)} 秒 · 擊殺 ${this.kills}\n${compact ? '點擊重新開始' : '按 R 或點擊此處重新開始'}`);
   }
 
   private showFloatingText(x: number, y: number, message: string): void {
@@ -302,16 +337,17 @@ export class GameScene extends Phaser.Scene {
   }
 
   private endGame(): void {
+    this.updateHUD();
     this.gameOver = true;
     this.player.playDeathAnimation();
     this.player.setVelocity(0).setTint(0x777777);
     this.physics.pause();
-    const compact = this.scale.width < 500 || this.scale.height < 520;
-    this.gameOverTitle = this.add.text(this.scale.width / 2, this.scale.height / 2 - 28, '燈火熄滅', { fontSize: compact ? '36px' : '54px', color: '#ffe5a0', fontStyle: 'bold', stroke: '#000', strokeThickness: 8 }).setOrigin(0.5).setDepth(200);
-    this.gameOverHint = this.add.text(this.scale.width / 2, this.scale.height / 2 + 42, `結算年齡 ${this.decaySystem.ageYears(this.elapsed)} 歲 · ${this.elapsed.toFixed(1)} 秒 · 擊殺 ${this.kills}\n${compact ? '點擊重新開始' : '按 R 或點擊此處重新開始'}`, { align: 'center', fontSize: compact ? '16px' : '21px', color: '#d7dbea', backgroundColor: '#101520cc', padding: { x: 18, y: 12 } })
-      .setOrigin(0.5)
-      .setDepth(200)
-      .setInteractive({ useHandCursor: true })
-      .once('pointerdown', () => this.scene.restart());
+    this.hud.setVisible(false);
+    this.resultCard = new GameOverCard({
+      livedAge: this.decaySystem.ageYears(this.elapsed),
+      difficultyAge: this.decaySystem.effectiveAgeYears(this.elapsed, this.player.ageReductionYears),
+      kills: this.kills,
+      score: calculateScore(this.elapsed, this.kills),
+    }, () => this.scene.restart());
   }
 }

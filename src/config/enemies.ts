@@ -17,6 +17,6 @@ export const ENEMIES: Record<string, EnemyDefinition> = {
     attackInterval: 1.2, projectileSpeed: 0, projectileDamage: 0, range: 0,
     preferredDistance: 0, texture: 'enemyMosquito', animations: 'enemyMosquito', behavior: 'dashRetreat', spawnWeight: 0.2,
     triggerRange: 190, dashSpeed: 330, dashEndDistance: 360, retreatSpeed: 220, retreatDuration: 1.4,
-    statusEffect: 'mosquitoBite', statusDamagePerSecond: 1.5, statusDuration: 4,
+    statusEffect: 'mosquitoBite', statusDamagePerSecond: 2, statusDuration: 20,
   },
 };

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
+import { StartScene } from './scenes/StartScene';
 import { GameScene } from './scenes/GameScene';
 import './style.css';
 
@@ -16,5 +17,5 @@ new Phaser.Game({
   scale: {
     mode: Phaser.Scale.RESIZE,
   },
-  scene: [BootScene, GameScene],
+  scene: [BootScene, StartScene, GameScene],
 });

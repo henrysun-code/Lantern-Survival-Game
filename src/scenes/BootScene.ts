@@ -24,7 +24,7 @@ export class BootScene extends Phaser.Scene {
       if (!this.textures.exists(asset.texture)) this.createPlaceholder(fallbackKey(key), asset.placeholder);
     });
     createConfiguredAnimations(this);
-    this.scene.start('GameScene');
+    this.scene.start('StartScene');
   }
 
   private async loadContentData(): Promise<void> {

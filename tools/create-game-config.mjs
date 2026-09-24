@@ -62,8 +62,8 @@ makeTable('Balance', ['path', 'value', 'unit', 'description'], balanceRows);
 const enemyRows = Object.values(enemies).map((e) => [e.id, e.name, e.hp, e.speed, e.contactDamage, e.attackInterval, e.projectileSpeed, e.projectileDamage, e.range, e.preferredDistance, e.texture, e.animations, e.behavior, e.spawnWeight, e.triggerRange ?? '', e.dashSpeed ?? '', e.dashEndDistance ?? '', e.retreatSpeed ?? '', e.retreatDuration ?? '', e.statusEffect ?? '', e.statusDamagePerSecond ?? '', e.statusDuration ?? '']);
 makeTable('Enemies', ['id', 'name', 'hp', 'speed', 'contactDamage', 'attackInterval', 'projectileSpeed', 'projectileDamage', 'range', 'preferredDistance', 'texture', 'animations', 'behavior', 'spawnWeight', 'triggerRange', 'dashSpeed', 'dashEndDistance', 'retreatSpeed', 'retreatDuration', 'statusEffect', 'statusDamagePerSecond', 'statusDuration'], enemyRows);
 
-const itemRows = Object.values(items).map((e) => [e.id, e.name, e.texture, e.effectType, e.value, e.sharedHealthDrainReduction, e.effectDuration, e.minimumAge ?? '']);
-makeTable('Items', ['id', 'name', 'texture', 'effectType', 'value', 'sharedHealthDrainReduction', 'effectDuration', 'minimumAge'], itemRows);
+const itemRows = Object.values(items).map((e) => [e.id, e.name, e.texture, e.effectType, e.value, e.sharedHealthDrainReduction, e.effectDuration, e.minimumAge ?? '', e.ageReductionYears ?? 0, e.clearsStatusEffects ?? false]);
+makeTable('Items', ['id', 'name', 'texture', 'effectType', 'value', 'sharedHealthDrainReduction', 'effectDuration', 'minimumAge', 'ageReductionYears', 'clearsStatusEffects'], itemRows);
 
 const animationRows = [];
 Object.entries(animations).forEach(([group, states]) => Object.entries(states).forEach(([name, a]) => animationRows.push([group, name, a.key, a.texture, a.startFrame, a.endFrame, a.frameRate, a.repeat])));

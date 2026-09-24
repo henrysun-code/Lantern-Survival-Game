@@ -20,10 +20,13 @@ const CONTROLS: Control[] = [
   { section: '生成', label: '道具間隔', path: 'balance.pickups.spawnInterval', min: 1, max: 30, step: 0.5 },
   { section: '近戰敵人', label: '移動速度', path: 'enemies.melee.speed', min: 10, max: 400, step: 1 },
   { section: '遠程敵人', label: '移動速度', path: 'enemies.ranged.speed', min: 10, max: 400, step: 1 },
-  { section: '道具補值', label: '光圈增加', path: 'items.lightBoost.value', min: 0, max: 200, step: 1 },
-  { section: '道具補值', label: '移速增加', path: 'items.speedBoost.value', min: 0, max: 200, step: 1 },
-  { section: '道具補值', label: '光傷增加', path: 'items.damageBoost.value', min: 0, max: 80, step: 0.5 },
-  { section: '道具補值', label: '減傷增加', path: 'items.defenseBoost.value', min: 0, max: 0.5, step: 0.01 },
+  { section: '道具補值', label: 'NNE 光圈增加', path: 'items.nne.value', min: 0, max: 200, step: 1 },
+  { section: '道具補值', label: 'NNE 減少年數', path: 'items.nne.ageReductionYears', min: 0, max: 5, step: 1 },
+  { section: '道具補值', label: 'YSS 移速增加', path: 'items.yss.value', min: 0, max: 200, step: 1 },
+  { section: '道具補值', label: 'YSS 減少年數', path: 'items.yss.ageReductionYears', min: 0, max: 5, step: 1 },
+  { section: '道具補值', label: 'BBB 光圈增加', path: 'items.bbb.value', min: 0, max: 200, step: 1 },
+  { section: '道具補值', label: 'BBB 減少年數', path: 'items.bbb.ageReductionYears', min: 0, max: 5, step: 1 },
+  { section: '道具補值', label: 'PPA 年齡扣血倍率', path: 'items.ppa.sharedHealthDrainReduction', min: 0, max: 1, step: 0.01 },
 ];
 
 export class DebugPanel {

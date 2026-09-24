@@ -18,7 +18,7 @@ Assets      圖片路徑、Spritesheet 大小與 Placeholder
 
 怪物生成可在 Balance 調整 `enemies.earlyAgeSpawnIntervalMultiplier`；目前未滿 `age.slowStart`（40 歲）時為 `0.8`，代表生成間隔是原本的 80%，40 歲起恢復目前的生成規則。
 
-`青春果` 在有效年齡 35 歲後才會出現。每吃一個，遊戲中的有效年齡永久減少 1 歲，可累積；結算年齡仍依遊玩秒數除以 `age.secondsPerYear` 計算。可在 Items 工作表調整 `value` 和 `minimumAge`。
+目前 NNE、BBB 會增加 42 點照亮範圍並讓玩家年輕 1 歲，YSS 會增加 48 點移動速度並讓玩家年輕 1 歲（降低有效年齡）。PPA 會清除玩家目前所有持續傷害，並在 5 秒內讓年齡造成的生命流失減少 50%。可在 Items 工作表調整 `ageReductionYears` 和 `clearsStatusEffects`。
 
 ## A. 單張圖片（沒有逐格動畫）
 
@@ -144,7 +144,7 @@ statusDamagePerSecond 狀態每秒傷害
 statusDuration        狀態持續秒數
 ```
 
-蚊子的 `statusEffect` 使用 `mosquitoBite`，玩家被撞到後會在 HUD 顯示「蚊蟲叮咬中」，並持續扣血。
+蚊子的 `statusEffect` 使用 `mosquitoBite`，玩家被撞到後每秒扣 2 點生命、持續 20 秒，單次最多扣 40 點。每次扣血時玩家外框會短暫閃紅，血條上方會顯示狀態和剩餘秒數。持續傷害不受提燈減傷影響；再次中叮咬時不會疊加 DPS，但會把剩餘時間延長到最多 20 秒。PPA 可清除目前的持續傷害狀態。
 
 ### 沿用遠程行為
 

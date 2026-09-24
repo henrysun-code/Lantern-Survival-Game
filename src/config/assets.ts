@@ -11,9 +11,8 @@ export const ASSETS: Record<string, VisualConfig> = {
   enemyRanged: { texture: 'enemyRanged', path: 'assets/enemies/enemy-ranged-sheet.png', spritesheet: { frameWidth: 64, frameHeight: 64 }, scale: 1, origin: { x: 0.5, y: 0.5 }, depth: 5, placeholder: { shape: 'rect', color: 0xa855f7, width: 34, height: 34 } },
   enemyMosquito: { texture: 'enemyMosquito', path: 'assets/enemies/enemy-mosquito-sheet.png', spritesheet: { frameWidth: 64, frameHeight: 64 }, scale: 1, origin: { x: 0.5, y: 0.5 }, depth: 5, placeholder: { shape: 'triangle', color: 0xff7b9c, width: 24, height: 24 } },
   projectile: { texture: 'projectile', path: '', depth: 6, placeholder: { shape: 'circle', color: 0xff75d8, width: 12, height: 12 } },
-  pickupLight: { texture: 'pickupLight', path: 'assets/items/light-radius.png', depth: 4, placeholder: { shape: 'circle', color: 0xffd166, width: 24, height: 24 } },
-  pickupSpeed: { texture: 'pickupSpeed', path: '', depth: 4, placeholder: { shape: 'triangle', color: 0x49dcb1, width: 26, height: 26 } },
-  pickupDamage: { texture: 'pickupDamage', path: '', depth: 4, placeholder: { shape: 'rect', color: 0xff8c42, width: 24, height: 24 } },
-  pickupDefense: { texture: 'pickupDefense', path: '', depth: 4, placeholder: { shape: 'rect', color: 0x55a7ff, width: 24, height: 24 } },
-  pickupAge: { texture: 'pickupAge', path: '', depth: 4, placeholder: { shape: 'circle', color: 0xb678e7, width: 24, height: 24 } },
+  pickupNNE: { texture: 'pickupNNE', path: 'assets/items/light-radius.png', scale: 1, depth: 4, placeholder: { shape: 'circle', color: 0xffd166, width: 24, height: 24 } },
+  pickupYSS: { texture: 'pickupYSS', path: 'assets/items/YSS.png', scale: 1, depth: 4, placeholder: { shape: 'triangle', color: 0x49dcb1, width: 26, height: 26 } },
+  pickupBBB: { texture: 'pickupBBB', path: 'assets/items/BBB.png', scale: 1, depth: 4, placeholder: { shape: 'rect', color: 0xff8c42, width: 24, height: 24 } },
+  pickupPPA: { texture: 'pickupPPA', path: 'assets/items/ppa-light-radius.png', scale: 1, depth: 4, placeholder: { shape: 'circle', color: 0xb678e7, width: 24, height: 24 } },
 };

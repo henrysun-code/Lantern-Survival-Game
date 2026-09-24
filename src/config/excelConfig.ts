@@ -4,7 +4,7 @@ type Row = Record<string, unknown>;
 
 const numberOrText = (value: unknown): unknown => {
   if (value === null || value === undefined || value === '') return undefined;
-  if (typeof value === 'number') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return value;
   const text = String(value).trim();
   if (text === '') return undefined;
   const numeric = Number(text);

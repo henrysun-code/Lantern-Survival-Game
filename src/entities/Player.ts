@@ -3,7 +3,7 @@ import { runtimeConfig } from '../config/runtime';
 import type { ItemEffect } from '../config/types';
 import { applyVisual, playConfiguredAnimation, resolveTexture } from '../utils/visuals';
 
-type ActiveStatusEffect = { damagePerSecond: number; remainingSeconds: number };
+type ActiveStatusEffect = { damagePerSecond: number; remainingSeconds: number; timeUntilNextTick: number };
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   hp = 100;
@@ -21,8 +21,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private facing: 'down' | 'up' | 'side' = 'down';
   private readonly maxHp: number;
   private readonly healthBar: Phaser.GameObjects.Graphics;
+  private readonly statusLabel: Phaser.GameObjects.Text;
   private readonly outline: Phaser.GameObjects.Sprite;
   private readonly statusEffects = new Map<string, ActiveStatusEffect>();
+  private statusFlashRemaining = 0;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd: Record<string, Phaser.Input.Keyboard.Key>;
 
@@ -39,8 +41,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.hp = b.player.maxHp;
     this.maxHp = b.player.maxHp;
     this.healthBar = scene.add.graphics().setDepth(40);
+    this.statusLabel = scene.add.text(x, y, '', {
+      fontFamily: 'ui-monospace, Consolas, monospace',
+      fontSize: '10px',
+      fontStyle: 'bold',
+      color: '#ff727c',
+      backgroundColor: '#270c19dd',
+      padding: { x: 3, y: 1 },
+      shadow: { color: '#130811', fill: true, offsetX: 1, offsetY: 1 },
+    }).setOrigin(0.5, 1).setDepth(40).setVisible(false);
     this.once(Phaser.GameObjects.Events.DESTROY, () => {
       this.healthBar.destroy();
+      this.statusLabel.destroy();
       this.outline.destroy();
     });
     this.moveSpeed = b.player.moveSpeed.start;
@@ -67,6 +79,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.healthBar.clear();
     this.healthBar.fillStyle(0x160d16, 0.9).fillRoundedRect(x - 1, y - 1, width + 2, height + 2, 2);
     this.healthBar.fillStyle(ratio > 0.5 ? 0x57d66f : ratio > 0.25 ? 0xffc857 : 0xff5c70, 1).fillRect(x, y, width * ratio, height);
+    const bite = this.statusEffects.get('mosquitoBite');
+    const remaining = bite?.remainingSeconds ?? Math.max(0, ...[...this.statusEffects.values()].map((effect) => effect.remainingSeconds));
+    const statusText = this.statusEffects.size > 0
+      ? `${bite ? '蚊蟲叮咬' : '持續傷害'} ${Math.ceil(remaining)}s`
+      : '';
+    this.statusLabel.setText(statusText).setPosition(this.x, y - 2).setVisible(Boolean(statusText));
   }
 
   updateMovement(touchDirection = { x: 0, y: 0 }): void {
@@ -120,18 +138,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.animationState = playConfiguredAnimation(this, 'player', state, this.animationState);
   }
 
-  applyPickup(effect: ItemEffect, value: number, reduction: number, duration: number, nowSeconds: number, restoresColor = false): void {
+  applyPickup(
+    effect: ItemEffect,
+    value: number,
+    reduction: number,
+    duration: number,
+    nowSeconds: number,
+    restoresColor = false,
+    ageReductionYears = 0,
+    clearsStatusEffects = false,
+  ): void {
     if (effect === 'ageReduction') {
       this.ageReductionYears += Math.max(0, Math.floor(value));
-      return;
+    } else {
+      if (effect === 'lightRadius') this.lightRadius = Math.min(runtimeConfig.config.balance.lantern.radius.maximum, this.lightRadius + value);
+      if (effect === 'moveSpeed') this.moveSpeed = Math.min(runtimeConfig.config.balance.player.moveSpeed.maximum, this.moveSpeed + value);
+      if (effect === 'lightDamage') this.lightDamage = Math.min(runtimeConfig.config.balance.lightDamage.dps.maximum, this.lightDamage + value);
+      if (effect === 'damageReduction') this.damageReduction = Math.min(runtimeConfig.config.balance.damageReduction.ratio.maximum, this.damageReduction + value);
+      this.drainReductionMultiplier = Math.min(this.drainReductionMultiplier, reduction);
+      this.drainReductionUntil = Math.max(this.drainReductionUntil, nowSeconds + duration);
+      if (restoresColor) this.colorRestoreUntil = nowSeconds + duration;
     }
-    if (effect === 'lightRadius') this.lightRadius = Math.min(runtimeConfig.config.balance.lantern.radius.maximum, this.lightRadius + value);
-    if (effect === 'moveSpeed') this.moveSpeed = Math.min(runtimeConfig.config.balance.player.moveSpeed.maximum, this.moveSpeed + value);
-    if (effect === 'lightDamage') this.lightDamage = Math.min(runtimeConfig.config.balance.lightDamage.dps.maximum, this.lightDamage + value);
-    if (effect === 'damageReduction') this.damageReduction = Math.min(runtimeConfig.config.balance.damageReduction.ratio.maximum, this.damageReduction + value);
-    this.drainReductionMultiplier = Math.min(this.drainReductionMultiplier, reduction);
-    this.drainReductionUntil = Math.max(this.drainReductionUntil, nowSeconds + duration);
-    if (restoresColor) this.colorRestoreUntil = nowSeconds + duration;
+    this.ageReductionYears += Math.max(0, Math.floor(ageReductionYears));
+    if (clearsStatusEffects) this.clearStatusEffects();
   }
 
   updateColor(nowSeconds: number, deltaSeconds: number, decayMultiplier = 1): void {
@@ -156,7 +185,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.outline.setFlipX(this.flipX);
     this.outline.setFlipY(this.flipY);
     this.outline.setRotation(this.rotation);
-    this.outline.setAlpha(0.2 + (1 - this.colorBrightness) * 0.7);
+    this.outline.setTintFill(this.statusFlashRemaining > 0 ? 0xff3348 : 0x82cfff);
+    this.outline.setAlpha(this.statusFlashRemaining > 0 ? 0.9 : 0.2 + (1 - this.colorBrightness) * 0.7);
   }
 
   getColorRestoreRemaining(nowSeconds: number): number {
@@ -169,26 +199,46 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.statusEffects.set(id, {
       damagePerSecond: Math.max(current?.damagePerSecond ?? 0, damagePerSecond),
       remainingSeconds: Math.max(current?.remainingSeconds ?? 0, durationSeconds),
+      timeUntilNextTick: current?.timeUntilNextTick ?? 1,
     });
   }
 
   updateStatusEffects(deltaSeconds: number, nowSeconds: number): void {
-    if (this.statusEffects.size === 0 || this.hp <= 0) return;
+    this.statusFlashRemaining = Math.max(0, this.statusFlashRemaining - deltaSeconds);
+    if (this.statusEffects.size === 0 || this.hp <= 0) {
+      this.syncOutline();
+      return;
+    }
     let damage = 0;
     this.statusEffects.forEach((effect, id) => {
-      damage += effect.damagePerSecond * deltaSeconds;
-      effect.remainingSeconds -= deltaSeconds;
-      if (effect.remainingSeconds <= 0) this.statusEffects.delete(id);
+      const activeSeconds = Math.min(deltaSeconds, effect.remainingSeconds);
+      let secondsUntilStepEnds = activeSeconds;
+      while (effect.timeUntilNextTick <= secondsUntilStepEnds + 1e-9) {
+        damage += effect.damagePerSecond;
+        this.statusFlashRemaining = 0.12;
+        secondsUntilStepEnds -= effect.timeUntilNextTick;
+        effect.timeUntilNextTick = 1;
+      }
+      effect.timeUntilNextTick -= secondsUntilStepEnds;
+      effect.remainingSeconds -= activeSeconds;
+      if (effect.remainingSeconds <= 1e-9) this.statusEffects.delete(id);
     });
     if (damage > 0) {
       this.hp = Math.max(0, this.hp - damage);
       this.updateColorTint(nowSeconds);
       if (this.hp <= 0) this.playDeathAnimation();
     }
+    this.syncOutline();
   }
 
   getActiveStatusEffects(): string[] {
     return [...this.statusEffects.keys()];
+  }
+
+  clearStatusEffects(): void {
+    this.statusEffects.clear();
+    this.statusFlashRemaining = 0;
+    this.syncOutline();
   }
 
   private updateColorTint(nowSeconds: number): void {
